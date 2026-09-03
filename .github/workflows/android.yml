@@ -27,7 +27,7 @@ jobs:
       - name: Create Capacitor project
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor/app
           npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
           npx cap add android
           npx cap copy android
