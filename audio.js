@@ -1,11 +1,7 @@
-/* =========================================
-   NEON DODGE — AUDIO SYSTEM
-   Web Audio API
-========================================= */
-
 const AudioFX = (() => {
 
     let ctx = null;
+
     let master = null;
     let musicGain = null;
     let soundGain = null;
@@ -13,13 +9,25 @@ const AudioFX = (() => {
     let musicTimer = null;
     let musicStep = 0;
 
+    let musicEnabled = true;
+    let soundEnabled = true;
+
+    const melody = [
+        261.63,
+        329.63,
+        392.00,
+        329.63,
+        293.66,
+        349.23,
+        440.00,
+        349.23
+    ];
+
     function init() {
 
         if (ctx) {
-            if (ctx.state === "suspended") {
-                ctx.resume();
-            }
-            return;
+            resume();
+            return true;
         }
 
         const AudioContext =
@@ -28,36 +36,49 @@ const AudioFX = (() => {
 
         if (!AudioContext) {
             console.warn("Web Audio API is not supported");
-            return;
+            return false;
         }
 
-        ctx = new AudioContext();
+        try {
 
-        master = ctx.createGain();
-        master.gain.value = 0.75;
-        master.connect(ctx.destination);
+            ctx = new AudioContext();
 
-        musicGain = ctx.createGain();
-        musicGain.gain.value =
-            typeof saveData !== "undefined" && saveData.music
-                ? 0.12
-                : 0.001;
+            master = ctx.createGain();
+            master.gain.value = 0.85;
+            master.connect(ctx.destination);
 
-        musicGain.connect(master);
+            musicGain = ctx.createGain();
+            musicGain.gain.value = 0.001;
+            musicGain.connect(master);
 
-        soundGain = ctx.createGain();
-        soundGain.gain.value =
-            typeof saveData !== "undefined" && saveData.sound
-                ? 0.55
-                : 0.001;
+            soundGain = ctx.createGain();
+            soundGain.gain.value = 0.001;
+            soundGain.connect(master);
 
-        soundGain.connect(master);
+            if (
+                typeof saveData !== "undefined"
+            ) {
+                musicEnabled =
+                    saveData.music !== false;
 
-        if (
-            typeof saveData !== "undefined" &&
-            saveData.music
-        ) {
-            startMusic();
+                soundEnabled =
+                    saveData.sound !== false;
+            }
+
+            updateVolumes();
+
+            return true;
+
+        } catch (error) {
+
+            console.error(
+                "Audio initialization error:",
+                error
+            );
+
+            ctx = null;
+
+            return false;
         }
     }
 
@@ -65,47 +86,70 @@ const AudioFX = (() => {
 
         if (!ctx) return;
 
-        if (ctx.state === "suspended") {
-            ctx.resume();
+        try {
+
+            if (ctx.state === "suspended") {
+                ctx.resume();
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Audio resume error:",
+                error
+            );
         }
+    }
+
+    function updateVolumes() {
+
+        if (!ctx) return;
+
+        const now = ctx.currentTime;
+
+        musicGain.gain.cancelScheduledValues(now);
+        soundGain.gain.cancelScheduledValues(now);
+
+        musicGain.gain.setTargetAtTime(
+            musicEnabled ? 0.14 : 0.001,
+            now,
+            0.08
+        );
+
+        soundGain.gain.setTargetAtTime(
+            soundEnabled ? 0.65 : 0.001,
+            now,
+            0.04
+        );
     }
 
     function tone(
         frequency,
-        duration = 0.08,
+        duration = 0.1,
         type = "sine",
-        volume = 0.15,
-        endFrequency = null
+        volume = 0.25,
+        destination = soundGain,
+        startDelay = 0
     ) {
 
-        if (!ctx || !soundGain) return;
+        if (!ctx || !destination) return;
 
-        if (
-            typeof saveData !== "undefined" &&
-            !saveData.sound
-        ) {
-            return;
-        }
+        const now =
+            ctx.currentTime +
+            startDelay;
 
-        const now = ctx.currentTime;
+        const oscillator =
+            ctx.createOscillator();
 
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
+        const gain =
+            ctx.createGain();
 
-        osc.type = type;
+        oscillator.type = type;
 
-        osc.frequency.setValueAtTime(
+        oscillator.frequency.setValueAtTime(
             frequency,
             now
         );
-
-        if (endFrequency !== null) {
-
-            osc.frequency.exponentialRampToValueAtTime(
-                Math.max(20, endFrequency),
-                now + duration
-            );
-        }
 
         gain.gain.setValueAtTime(
             0.001,
@@ -113,8 +157,8 @@ const AudioFX = (() => {
         );
 
         gain.gain.exponentialRampToValueAtTime(
-            volume,
-            now + 0.008
+            Math.max(0.001, volume),
+            now + 0.015
         );
 
         gain.gain.exponentialRampToValueAtTime(
@@ -122,49 +166,32 @@ const AudioFX = (() => {
             now + duration
         );
 
-        osc.connect(gain);
-        gain.connect(soundGain);
+        oscillator.connect(gain);
+        gain.connect(destination);
 
-        osc.start(now);
-
-        osc.stop(
-            now +
-            duration +
-            0.02
-        );
+        oscillator.start(now);
+        oscillator.stop(now + duration + 0.03);
     }
 
     function noise(
-        duration = 0.1,
-        volume = 0.15
+        duration = 0.15,
+        volume = 0.2,
+        startDelay = 0
     ) {
 
         if (!ctx || !soundGain) return;
 
-        if (
-            typeof saveData !== "undefined" &&
-            !saveData.sound
-        ) {
-            return;
-        }
-
         const buffer =
             ctx.createBuffer(
                 1,
-                Math.floor(
-                    ctx.sampleRate * duration
-                ),
+                ctx.sampleRate * duration,
                 ctx.sampleRate
             );
 
         const data =
             buffer.getChannelData(0);
 
-        for (
-            let i = 0;
-            i < data.length;
-            i++
-        ) {
+        for (let i = 0; i < data.length; i++) {
             data[i] =
                 Math.random() * 2 - 1;
         }
@@ -178,16 +205,23 @@ const AudioFX = (() => {
         const gain =
             ctx.createGain();
 
+        const now =
+            ctx.currentTime +
+            startDelay;
+
         source.buffer = buffer;
 
-        filter.type = "highpass";
-        filter.frequency.value = 700;
-
-        const now = ctx.currentTime;
+        filter.type = "lowpass";
+        filter.frequency.value = 1800;
 
         gain.gain.setValueAtTime(
-            volume,
+            0.001,
             now
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            Math.max(0.001, volume),
+            now + 0.01
         );
 
         gain.gain.exponentialRampToValueAtTime(
@@ -195,435 +229,519 @@ const AudioFX = (() => {
             now + duration
         );
 
-        source.connect(filter);
-        filter.connect(gain);
-        gain.connect(soundGain);
+        source
+            .connect(filter)
+            .connect(gain)
+            .connect(soundGain);
 
         source.start(now);
+        source.stop(now + duration + 0.03);
     }
-
-    /* =========================================
-       UI
-    ========================================= */
 
     function click() {
-        tone(
-            520,
-            0.045,
-            "sine",
-            0.08,
-            700
-        );
-    }
 
-    /* =========================================
-       GAME
-    ========================================= */
-
-    function crystal() {
-
-        tone(
-            700,
-            0.08,
-            "sine",
-            0.11,
-            1000
-        );
-
-        setTimeout(() => {
-
-            tone(
-                1050,
-                0.09,
-                "sine",
-                0.08,
-                1350
-            );
-
-        }, 45);
-    }
-
-    function buff() {
-
-        tone(
-            420,
-            0.08,
-            "sine",
-            0.09,
-            650
-        );
-
-        setTimeout(() => {
-
-            tone(
-                650,
-                0.1,
-                "sine",
-                0.1,
-                1050
-            );
-
-        }, 65);
-
-        setTimeout(() => {
-
-            tone(
-                1050,
-                0.13,
-                "sine",
-                0.09,
-                1450
-            );
-
-        }, 130);
-    }
-
-    function shoot() {
+        if (!soundEnabled) return;
 
         tone(
             620,
             0.055,
-            "triangle",
+            "sine",
+            0.18
+        );
+
+        tone(
+            880,
             0.045,
-            900
+            "sine",
+            0.08,
+            soundGain,
+            0.025
+        );
+    }
+
+    function crystal() {
+
+        if (!soundEnabled) return;
+
+        tone(
+            880,
+            0.09,
+            "sine",
+            0.22
+        );
+
+        tone(
+            1320,
+            0.12,
+            "sine",
+            0.16,
+            soundGain,
+            0.055
+        );
+
+        tone(
+            1760,
+            0.14,
+            "sine",
+            0.10,
+            soundGain,
+            0.10
+        );
+    }
+
+    function buff() {
+
+        if (!soundEnabled) return;
+
+        tone(
+            420,
+            0.10,
+            "sine",
+            0.18
+        );
+
+        tone(
+            630,
+            0.12,
+            "sine",
+            0.20,
+            soundGain,
+            0.07
+        );
+
+        tone(
+            920,
+            0.18,
+            "sine",
+            0.20,
+            soundGain,
+            0.14
+        );
+    }
+
+    function shoot() {
+
+        if (!soundEnabled) return;
+
+        tone(
+            760,
+            0.07,
+            "square",
+            0.10
+        );
+
+        tone(
+            1150,
+            0.045,
+            "sine",
+            0.07,
+            soundGain,
+            0.025
         );
     }
 
     function explosion() {
 
+        if (!soundEnabled) return;
+
         noise(
-            0.12,
-            0.14
+            0.20,
+            0.20
         );
 
         tone(
-            120,
-            0.14,
+            110,
+            0.22,
             "sawtooth",
-            0.08,
-            45
+            0.12
         );
     }
 
     function damage() {
 
+        if (!soundEnabled) return;
+
         tone(
             180,
             0.16,
             "sawtooth",
-            0.12,
-            75
+            0.20
+        );
+
+        tone(
+            90,
+            0.20,
+            "sine",
+            0.15,
+            soundGain,
+            0.06
         );
 
         noise(
-            0.08,
-            0.08
+            0.12,
+            0.10
         );
     }
 
     function death() {
 
+        if (!soundEnabled) return;
+
         tone(
-            260,
-            0.2,
-            "sawtooth",
-            0.13,
-            80
+            440,
+            0.15,
+            "sine",
+            0.18
         );
 
-        setTimeout(() => {
+        tone(
+            330,
+            0.18,
+            "sine",
+            0.18,
+            soundGain,
+            0.12
+        );
 
-            tone(
-                120,
-                0.35,
-                "triangle",
-                0.1,
-                35
-            );
+        tone(
+            220,
+            0.25,
+            "sine",
+            0.20,
+            soundGain,
+            0.25
+        );
 
-        }, 100);
-
-        setTimeout(() => {
-
-            noise(
-                0.22,
-                0.1
-            );
-
-        }, 180);
+        tone(
+            110,
+            0.45,
+            "sine",
+            0.18,
+            soundGain,
+            0.40
+        );
     }
 
     function shield() {
 
+        if (!soundEnabled) return;
+
         tone(
-            280,
-            0.12,
+            300,
+            0.10,
             "sine",
-            0.08,
-            520
+            0.16
         );
 
-        setTimeout(() => {
+        tone(
+            500,
+            0.16,
+            "sine",
+            0.18,
+            soundGain,
+            0.06
+        );
 
-            tone(
-                520,
-                0.18,
-                "sine",
-                0.1,
-                900
-            );
-
-        }, 70);
+        tone(
+            760,
+            0.24,
+            "sine",
+            0.18,
+            soundGain,
+            0.13
+        );
     }
 
     function emp() {
 
+        if (!soundEnabled) return;
+
         tone(
-            100,
+            70,
+            0.35,
+            "sawtooth",
+            0.18
+        );
+
+        tone(
+            140,
+            0.28,
+            "square",
+            0.12,
+            soundGain,
+            0.05
+        );
+
+        tone(
+            280,
             0.22,
             "sine",
             0.12,
-            35
+            soundGain,
+            0.12
         );
 
         noise(
-            0.3,
-            0.12
+            0.28,
+            0.15
         );
     }
 
     function laser() {
 
+        if (!soundEnabled) return;
+
         tone(
-            850,
-            0.2,
+            150,
+            0.45,
             "sawtooth",
-            0.06,
-            1400
+            0.10
+        );
+
+        tone(
+            900,
+            0.35,
+            "sine",
+            0.10
         );
     }
 
     function meteor() {
 
+        if (!soundEnabled) return;
+
         tone(
-            180,
-            0.3,
+            100,
+            0.35,
             "sawtooth",
-            0.08,
-            45
+            0.16
         );
 
         noise(
-            0.18,
-            0.08
+            0.30,
+            0.15
         );
     }
 
     function hunter() {
 
+        if (!soundEnabled) return;
+
         tone(
-            90,
-            0.4,
-            "triangle",
-            0.09,
-            170
+            160,
+            0.18,
+            "sine",
+            0.14
         );
 
-        setTimeout(() => {
+        tone(
+            100,
+            0.25,
+            "sawtooth",
+            0.13,
+            soundGain,
+            0.12
+        );
 
-            tone(
-                170,
-                0.35,
-                "triangle",
-                0.08,
-                60
-            );
-
-        }, 100);
+        tone(
+            70,
+            0.35,
+            "sine",
+            0.12,
+            soundGain,
+            0.25
+        );
     }
 
     function warning() {
 
+        if (!soundEnabled) return;
+
         tone(
-            300,
-            0.09,
-            "square",
-            0.08
+            600,
+            0.12,
+            "sine",
+            0.17
         );
 
-        setTimeout(() => {
+        tone(
+            400,
+            0.12,
+            "sine",
+            0.17,
+            soundGain,
+            0.16
+        );
 
-            tone(
-                220,
-                0.09,
-                "square",
-                0.08
-            );
-
-        }, 120);
+        tone(
+            600,
+            0.12,
+            "sine",
+            0.17,
+            soundGain,
+            0.32
+        );
     }
 
     function eventStart() {
 
+        if (!soundEnabled) return;
+
         tone(
-            420,
-            0.12,
-            "triangle",
-            0.08,
-            700
+            260,
+            0.14,
+            "sine",
+            0.14
         );
 
-        setTimeout(() => {
+        tone(
+            390,
+            0.18,
+            "sine",
+            0.15,
+            soundGain,
+            0.10
+        );
 
-            tone(
-                700,
-                0.15,
-                "triangle",
-                0.09,
-                1100
-            );
-
-        }, 90);
+        tone(
+            520,
+            0.22,
+            "sine",
+            0.16,
+            soundGain,
+            0.20
+        );
     }
 
     function revive() {
+
+        if (!soundEnabled) return;
 
         tone(
             300,
             0.12,
             "sine",
-            0.08,
-            500
+            0.15
         );
 
-        setTimeout(() => {
+        tone(
+            500,
+            0.16,
+            "sine",
+            0.18,
+            soundGain,
+            0.08
+        );
 
-            tone(
-                500,
-                0.14,
-                "sine",
-                0.09,
-                800
-            );
+        tone(
+            700,
+            0.20,
+            "sine",
+            0.20,
+            soundGain,
+            0.18
+        );
 
-        }, 90);
-
-        setTimeout(() => {
-
-            tone(
-                800,
-                0.2,
-                "sine",
-                0.1,
-                1300
-            );
-
-        }, 180);
+        tone(
+            1000,
+            0.28,
+            "sine",
+            0.16,
+            soundGain,
+            0.30
+        );
     }
 
     function reward() {
 
+        if (!soundEnabled) return;
+
         tone(
-            600,
-            0.1,
+            523.25,
+            0.10,
             "sine",
-            0.08,
-            850
+            0.18
         );
 
-        setTimeout(() => {
+        tone(
+            659.25,
+            0.12,
+            "sine",
+            0.18,
+            soundGain,
+            0.08
+        );
 
-            tone(
-                850,
-                0.1,
-                "sine",
-                0.08,
-                1150
-            );
+        tone(
+            783.99,
+            0.16,
+            "sine",
+            0.20,
+            soundGain,
+            0.16
+        );
 
-        }, 80);
-
-        setTimeout(() => {
-
-            tone(
-                1150,
-                0.18,
-                "sine",
-                0.1,
-                1500
-            );
-
-        }, 160);
+        tone(
+            1046.50,
+            0.25,
+            "sine",
+            0.18,
+            soundGain,
+            0.27
+        );
     }
 
     function purchase() {
+
+        if (!soundEnabled) return;
 
         tone(
             500,
             0.08,
             "sine",
-            0.08,
-            750
+            0.15
         );
 
-        setTimeout(() => {
-
-            tone(
-                750,
-                0.14,
-                "sine",
-                0.09,
-                1100
-            );
-
-        }, 70);
+        tone(
+            750,
+            0.13,
+            "sine",
+            0.18,
+            soundGain,
+            0.07
+        );
     }
 
-    /* =========================================
-       CALM AMBIENT MUSIC
-    ========================================= */
-
-    const melody = [
-        261.63,
-        329.63,
-        392.00,
-        329.63,
-        293.66,
-        349.23,
-        440.00,
-        349.23
-    ];
-
-    function musicNote(
-        freq,
-        duration = 1.8
-    ) {
-
-        if (!ctx || !musicGain) return;
+    function musicNote(frequency) {
 
         if (
-            typeof saveData !== "undefined" &&
-            !saveData.music
+            !ctx ||
+            !musicGain ||
+            !musicEnabled
         ) {
             return;
         }
 
+        const now = ctx.currentTime;
+
         const osc =
             ctx.createOscillator();
-
-        const gain =
-            ctx.createGain();
 
         const filter =
             ctx.createBiquadFilter();
 
+        const gain =
+            ctx.createGain();
+
         osc.type = "sine";
-        osc.frequency.value = freq;
+
+        osc.frequency.setValueAtTime(
+            frequency,
+            now
+        );
 
         filter.type = "lowpass";
-        filter.frequency.value = 900;
-
-        const now = ctx.currentTime;
+        filter.frequency.value = 1200;
 
         gain.gain.setValueAtTime(
             0.001,
@@ -631,72 +749,55 @@ const AudioFX = (() => {
         );
 
         gain.gain.linearRampToValueAtTime(
-            0.035,
-            now + 0.25
+            0.055,
+            now + 0.08
         );
 
         gain.gain.linearRampToValueAtTime(
             0.001,
-            now + duration
+            now + 1.65
         );
 
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(musicGain);
+        osc
+            .connect(filter)
+            .connect(gain)
+            .connect(musicGain);
 
         osc.start(now);
-
-        osc.stop(
-            now +
-            duration +
-            0.05
-        );
+        osc.stop(now + 1.7);
     }
 
     function musicLoop() {
 
-        if (!ctx) return;
-
         if (
-            typeof saveData !== "undefined" &&
-            saveData.music &&
-            !musicTimer
+            !ctx ||
+            !musicEnabled
         ) {
-
-            musicTimer =
-                setInterval(() => {
-
-                    if (
-                        typeof saveData !== "undefined" &&
-                        !saveData.music
-                    ) {
-                        return;
-                    }
-
-                    const note =
-                        melody[
-                            musicStep %
-                            melody.length
-                        ];
-
-                    musicNote(
-                        note,
-                        2.2
-                    );
-
-                    musicStep++;
-
-                }, 1900);
+            musicTimer = null;
+            return;
         }
+
+        musicNote(
+            melody[musicStep]
+        );
+
+        musicStep =
+            (musicStep + 1) %
+            melody.length;
+
+        musicTimer =
+            setTimeout(
+                musicLoop,
+                1650
+            );
     }
 
     function startMusic() {
 
-        if (!ctx) return;
+        if (!ctx || !musicEnabled) return;
 
-        if (musicTimer) {
-            clearInterval(musicTimer);
-            musicTimer = null;
+        if (musicTimer !== null) {
+            return;
         }
 
         musicStep = 0;
@@ -706,9 +807,9 @@ const AudioFX = (() => {
 
     function stopMusic() {
 
-        if (musicTimer) {
+        if (musicTimer !== null) {
 
-            clearInterval(
+            clearTimeout(
                 musicTimer
             );
 
@@ -718,21 +819,17 @@ const AudioFX = (() => {
 
     function setMusic(enabled) {
 
-        if (!ctx || !musicGain) return;
+        musicEnabled = !!enabled;
 
-        const now =
-            ctx.currentTime;
+        if (!ctx) {
+            init();
+        }
 
-        musicGain.gain.cancelScheduledValues(
-            now
-        );
+        if (!ctx) return;
 
-        musicGain.gain.linearRampToValueAtTime(
-            enabled ? 0.12 : 0.001,
-            now + 0.3
-        );
+        updateVolumes();
 
-        if (enabled) {
+        if (musicEnabled) {
             startMusic();
         } else {
             stopMusic();
@@ -741,19 +838,15 @@ const AudioFX = (() => {
 
     function setSound(enabled) {
 
-        if (!ctx || !soundGain) return;
+        soundEnabled = !!enabled;
 
-        const now =
-            ctx.currentTime;
+        if (!ctx) {
+            init();
+        }
 
-        soundGain.gain.cancelScheduledValues(
-            now
-        );
+        if (!ctx) return;
 
-        soundGain.gain.linearRampToValueAtTime(
-            enabled ? 0.55 : 0.001,
-            now + 0.15
-        );
+        updateVolumes();
     }
 
     return {
@@ -767,23 +860,24 @@ const AudioFX = (() => {
         explosion,
         damage,
         death,
-
         shield,
         emp,
-
         laser,
         meteor,
         hunter,
-
         warning,
         eventStart,
-
         revive,
         reward,
         purchase,
 
         setMusic,
-        setSound
+        setSound,
+
+        startMusic,
+        stopMusic
     };
 
 })();
+
+window.AudioFX = AudioFX;
