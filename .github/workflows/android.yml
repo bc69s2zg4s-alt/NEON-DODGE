@@ -26,7 +26,7 @@ jobs:
           keytool -list -v \
             -keystore neon-dodge-release.jks \
             -alias neon-dodge \
-            -storepass NEONDODGE2026
+            -storepass 20fe06da
 
       - name: Upload signing key
         uses: actions/upload-artifact@v4
