@@ -1,22 +1,16 @@
 name: Build NEON DODGE Android
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Prepare web files
         run: |
           mkdir -p www
@@ -24,181 +18,128 @@ jobs:
           cp style.css www/
           cp game.js www/
           cp audio.js www/
-
       - name: Create Capacitor project
         run: |
           npm init -y
-
           npm install \
             @capacitor/core@8.0.0 \
             @capacitor/cli@8.0.0 \
             @capacitor/android@8.0.0 \
             @capacitor-community/admob@8.1.0
-
           npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
-
           npx cap add android
-
       - name: Configure AdMob
         run: |
           python3 - <<'PY'
           from pathlib import Path
-
           # ==========================================
           # AndroidManifest.xml
           # ==========================================
-
           manifest = Path(
               "android/app/src/main/AndroidManifest.xml"
           )
-
           text = manifest.read_text()
-
           admob_marker = (
               "com.google.android.gms.ads.APPLICATION_ID"
           )
-
-          # Удаляем старую запись AdMob, если она уже есть
+          # Удаляем старую запись AdMob, если она есть
           while admob_marker in text:
-
+              marker_position = text.find(admob_marker)
               start = text.rfind(
                   "<meta-data",
                   0,
-                  text.find(admob_marker) + 1
+                  marker_position
               )
-
               end = text.find(
                   "/>",
-                  text.find(admob_marker)
+                  marker_position
               )
-
               if start == -1 or end == -1:
                   raise Exception(
                       "Could not remove old AdMob metadata"
                   )
-
               end += 2
-
               text = (
                   text[:start]
                   + text[end:]
               )
-
-          # Находим application
+          # Находим <application>
           application_start = text.find("<application")
-
           if application_start == -1:
               raise Exception(
                   "Could not find <application>"
               )
-
           application_end = text.find(
               ">",
               application_start
           )
-
           if application_end == -1:
               raise Exception(
                   "Could not find end of <application>"
               )
-
-          # Правильная запись AdMob
+          # AdMob App ID
           admob_meta = """
-          <meta-data
-              android:name="com.google.android.gms.ads.APPLICATION_ID"
-              android:value="@string/admob_app_id" />
+              <meta-data
+                  android:name="com.google.android.gms.ads.APPLICATION_ID"
+                  android:value="@string/admob_app_id" />
           """
-
           insert_position = application_end + 1
-
           text = (
               text[:insert_position]
               + admob_meta
               + text[insert_position:]
           )
-
           manifest.write_text(text)
-
           # ==========================================
           # strings.xml
           # ==========================================
-
           strings = Path(
               "android/app/src/main/res/values/strings.xml"
           )
-
           text = strings.read_text()
-
           app_id = (
               '    <string name="admob_app_id">'
               'ca-app-pub-7914086624525579~8190565290'
               '</string>'
           )
-
-          # Если старый ID уже есть — удаляем строку
+          # Удаляем старый admob_app_id
           lines = text.splitlines()
-
           lines = [
               line
               for line in lines
               if 'name="admob_app_id"' not in line
           ]
-
           text = "\n".join(lines)
-
           if not text.endswith("\n"):
               text += "\n"
-
           text = text.replace(
               "</resources>",
               app_id + "\n</resources>"
           )
-
           strings.write_text(text)
-
           print("====================================")
           print("AdMob configuration completed")
           print("App ID configured successfully")
           print("====================================")
           PY
-
       - name: Sync Capacitor
         run: |
           npx cap sync android
-
-      - name: Fix Kotlin dependencies
-        run: |
-          cat >> android/build.gradle <<'EOF'
-
-          allprojects {
-              configurations.configureEach {
-                  resolutionStrategy.eachDependency { details ->
-                      if (details.requested.group == "org.jetbrains.kotlin") {
-                          details.useVersion("2.1.20")
-                      }
-                  }
-              }
-          }
-          EOF
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-
       - name: Clean Android build
         run: |
           cd android
           chmod +x gradlew
           ./gradlew clean
-
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
