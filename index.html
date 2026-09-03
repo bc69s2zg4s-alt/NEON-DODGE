@@ -1,396 +1,233 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     >
-
     <meta
         name="theme-color"
         content="#05060b"
     >
-
     <title>NEON DODGE</title>
-
     <link
         rel="stylesheet"
         href="style.css"
     >
-
     <style>
-
         /* =========================
            GOOGLE AUTH
         ========================= */
-
         .account-box {
             width: min(360px, 88vw);
             margin: 20px auto 0;
             padding: 16px;
-
             box-sizing: border-box;
-
             background: rgba(255,255,255,.045);
-
             border: 1px solid rgba(255,255,255,.10);
-
             border-radius: 16px;
         }
-
         .account-title {
             margin-bottom: 12px;
-
             text-align: center;
-
             color: rgba(255,255,255,.55);
-
             font-size: 11px;
             font-weight: 900;
-
             letter-spacing: 2px;
         }
-
         .account-user {
             margin-bottom: 12px;
-
             text-align: center;
-
             color: #fff;
-
             font-size: 10px;
             font-weight: 800;
-
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-
         .google-login-btn,
         .logout-btn {
-
             width: 100%;
             min-height: 46px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             gap: 10px;
-
             border-radius: 11px;
-
             font-family: inherit;
-
             font-size: 10px;
             font-weight: 900;
-
             letter-spacing: 1px;
-
             cursor: pointer;
-
             transition:
                 transform .12s,
                 opacity .12s;
-
         }
-
         .google-login-btn {
-
             color: #fff;
-
-            background:
-                rgba(255,255,255,.09);
-
-            border:
-                1px solid rgba(255,255,255,.20);
-
+            background: rgba(255,255,255,.09);
+            border: 1px solid rgba(255,255,255,.20);
         }
-
         .google-login-btn:active,
         .logout-btn:active {
-
             transform: scale(.97);
-
         }
-
         .google-login-btn:disabled {
-
             opacity: .5;
-
             pointer-events: none;
-
         }
-
         .google-icon {
-
             width: 24px;
             height: 24px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             border-radius: 50%;
-
             background: #fff;
-
             color: #4285f4;
-
             font-family: Arial, sans-serif;
-
             font-size: 16px;
             font-weight: 900;
-
         }
-
         .logout-btn {
-
-            color:
-                rgba(255,255,255,.75);
-
-            background:
-                rgba(255,255,255,.05);
-
-            border:
-                1px solid rgba(255,255,255,.12);
-
+            color: rgba(255,255,255,.75);
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.12);
         }
-
         .auth-status {
-
             min-height: 17px;
-
             margin-top: 8px;
-
             text-align: center;
-
-            color:
-                rgba(255,255,255,.55);
-
+            color: rgba(255,255,255,.55);
             font-size: 8px;
-
             line-height: 12px;
-
             overflow-wrap: anywhere;
-
         }
-
         .auth-status.error {
-
             color: #ff6b6b;
-
         }
-
         .auth-status.success {
-
             color: #6dffb0;
-
         }
-
-        /* =========================
-           MOBILE
-        ========================= */
-
         @media (max-width: 430px) {
-
             .account-box {
-
                 width: 88vw;
-
                 padding: 15px;
-
             }
-
         }
-
     </style>
-
 </head>
-
-
 <body>
-
-
 <!-- =========================
      GAME CANVAS
 ========================= -->
-
 <canvas id="gameCanvas"></canvas>
-
-
 <!-- =========================
      HUD
 ========================= -->
-
 <div id="hud">
-
     <div class="hud-top">
-
         <div>
-
             <span class="hud-label">
                 SCORE
             </span>
-
             <strong id="score">
                 0
             </strong>
-
         </div>
-
-
         <div class="hud-center">
-
             <span class="hud-label">
                 MULTIPLIER
             </span>
-
             <strong id="multiplier">
                 x1
             </strong>
-
         </div>
-
-
         <div>
-
             <span class="hud-label">
                 BEST
             </span>
-
             <strong id="best">
                 0
             </strong>
-
         </div>
-
-
         <button
             id="pauseButton"
             class="mini-btn"
         >
             Ⅱ
         </button>
-
     </div>
-
-
     <div class="hud-bottom">
-
         <div class="stat-box">
-
             <span>
                 ❤️
             </span>
-
             <strong id="health">
                 1
             </strong>
-
         </div>
-
-
         <div class="stat-box">
-
             <span>
                 💎
             </span>
-
             <strong id="crystals">
                 0
             </strong>
-
         </div>
-
-
         <button
             id="shieldButton"
             class="ability-btn"
         >
-
             🛡️
-
             <small>
                 SHIELD
             </small>
-
         </button>
-
-
         <button
             id="empButton"
             class="ability-btn"
         >
-
             ⚡
-
             <small>
                 EMP
             </small>
-
         </button>
-
     </div>
-
 </div>
-
-
 <!-- =========================
      BUFFS
 ========================= -->
-
 <div id="buffContainer"></div>
-
-
 <!-- =========================
      EVENT WARNING
 ========================= -->
-
 <div id="eventWarning">
-
     <div id="eventWarningTitle">
         WARNING
     </div>
-
     <div id="eventWarningText"></div>
-
 </div>
-
-
 <!-- =========================
      MAIN MENU
 ========================= -->
-
 <div
     id="menu"
     class="screen active"
 >
-
     <div class="logo">
-
         <div>
             NEON
         </div>
-
         <span>
             DODGE
         </span>
-
     </div>
-
-
     <div class="menu-subtitle">
         SURVIVE THE NEON HELL
     </div>
-
-
     <div class="menu-buttons">
-
         <button
             id="playButton"
             class="main-btn"
@@ -398,8 +235,6 @@
             <span>▶</span>
             PLAY
         </button>
-
-
         <button
             id="shopButton"
             class="main-btn"
@@ -407,8 +242,6 @@
             <span>◆</span>
             SHOP
         </button>
-
-
         <button
             id="settingsButton"
             class="main-btn"
@@ -416,8 +249,6 @@
             <span>⚙</span>
             SETTINGS
         </button>
-
-
         <button
             id="feedbackButton"
             class="main-btn"
@@ -425,8 +256,6 @@
             <span>✉</span>
             FEEDBACK
         </button>
-
-
         <button
             id="dailyButton"
             class="main-btn"
@@ -434,356 +263,229 @@
             <span>🎁</span>
             DAILY REWARD
         </button>
-
     </div>
-
-
     <div class="menu-crystals">
-
         💎
-
         <span id="menuCrystals">
             0
         </span>
-
     </div>
-
 </div>
-
-
 <!-- =========================
      SHOP
 ========================= -->
-
 <div
     id="shopPanel"
     class="screen"
 >
-
     <div class="panel-header">
-
         <button
             class="back-btn"
             data-close="shopPanel"
         >
             ←
         </button>
-
-
         <h2>
             UPGRADES
         </h2>
-
-
         <div class="panel-currency">
-
             💎
-
             <span id="shopCrystals">
                 0
             </span>
-
         </div>
-
     </div>
-
-
     <div class="shop-list">
-
-
         <div class="upgrade">
-
             <div class="upgrade-icon">
                 ❤️
             </div>
-
             <div class="upgrade-info">
-
                 <h3>
                     EXTRA LIFE
                 </h3>
-
                 <p>
                     +1 maximum life
                 </p>
-
                 <small id="lifeLevel">
                     LEVEL 1/3
                 </small>
-
             </div>
-
             <button id="buyLife">
                 80 💎
             </button>
-
         </div>
-
-
         <div class="upgrade">
-
             <div class="upgrade-icon">
                 🔫
             </div>
-
             <div class="upgrade-info">
-
                 <h3>
                     NEON WEAPON
                 </h3>
-
                 <p>
                     Unlock automatic shooting
                 </p>
-
                 <small id="weaponLevel">
                     LOCKED
                 </small>
-
             </div>
-
             <button id="buyWeapon">
                 150 💎
             </button>
-
         </div>
-
-
         <div class="upgrade">
-
             <div class="upgrade-icon">
                 💥
             </div>
-
             <div class="upgrade-info">
-
                 <h3>
                     WEAPON DAMAGE
                 </h3>
-
                 <p>
                     More damage per shot
                 </p>
-
                 <small id="damageLevel">
                     LEVEL 1/3
                 </small>
-
             </div>
-
             <button id="buyDamage">
                 100 💎
             </button>
-
         </div>
-
-
         <div class="upgrade">
-
             <div class="upgrade-icon">
                 🛡️
             </div>
-
             <div class="upgrade-info">
-
                 <h3>
                     SHIELD
                 </h3>
-
                 <p>
                     Better shield cooldown
                 </p>
-
                 <small id="shieldLevel">
                     LEVEL 1/3
                 </small>
-
             </div>
-
             <button id="buyShield">
                 90 💎
             </button>
-
         </div>
-
-
         <div class="upgrade">
-
             <div class="upgrade-icon">
                 ⚡
             </div>
-
             <div class="upgrade-info">
-
                 <h3>
                     EMP
                 </h3>
-
                 <p>
                     Stronger EMP radius
                 </p>
-
                 <small id="empLevel">
                     LEVEL 1/3
                 </small>
-
             </div>
-
             <button id="buyEmp">
                 100 💎
             </button>
-
         </div>
-
-
     </div>
-
 </div>
-
-
 <!-- =========================
      SETTINGS
 ========================= -->
-
 <div
     id="settingsPanel"
     class="screen"
 >
-
     <div class="panel-header">
-
         <button
             class="back-btn"
             data-close="settingsPanel"
         >
             ←
         </button>
-
-
         <h2>
             SETTINGS
         </h2>
-
     </div>
-
-
     <div class="settings-list">
-
-
         <div class="setting">
-
             <div>
-
                 <h3>
                     🎵 MUSIC
                 </h3>
-
                 <p>
                     Background music
                 </p>
-
             </div>
-
-
             <button
                 id="musicToggle"
                 class="toggle"
             >
                 ON
             </button>
-
         </div>
-
-
         <div class="setting">
-
             <div>
-
                 <h3>
                     🔊 SOUND
                 </h3>
-
                 <p>
                     Game sounds
                 </p>
-
             </div>
-
-
             <button
                 id="soundToggle"
                 class="toggle"
             >
                 ON
             </button>
-
         </div>
-
-
         <div class="setting">
-
             <div>
-
                 <h3>
                     📳 VIBRATION
                 </h3>
-
                 <p>
                     Haptic feedback
                 </p>
-
             </div>
-
-
             <button
                 id="vibrationToggle"
                 class="toggle"
             >
                 ON
             </button>
-
         </div>
-
-
     </div>
-
-
     <!-- =========================
          ACCOUNT
     ========================= -->
-
     <div class="account-box">
-
         <div class="account-title">
             ACCOUNT
         </div>
-
-
         <div
             id="authUser"
             class="account-user"
         >
             NOT SIGNED IN
         </div>
-
-
         <button
             id="googleLoginButton"
             class="google-login-btn"
             type="button"
         >
-
             <span class="google-icon">
                 G
             </span>
-
             <span>
                 CONTINUE WITH GOOGLE
             </span>
-
         </button>
-
-
         <button
             id="logoutButton"
             class="logout-btn"
@@ -792,589 +494,425 @@
         >
             LOG OUT
         </button>
-
-
         <div
             id="authStatus"
             class="auth-status"
         ></div>
-
     </div>
-
 </div>
-
-
 <!-- =========================
      FEEDBACK
 ========================= -->
-
 <div
     id="feedbackPanel"
     class="screen"
 >
-
     <div class="panel-header">
-
         <button
             class="back-btn"
             data-close="feedbackPanel"
         >
             ←
         </button>
-
-
         <h2>
             FEEDBACK
         </h2>
-
     </div>
-
-
     <div class="feedback-content">
-
         <div class="feedback-icon">
             ✉
         </div>
-
-
         <h2>
             FOUND A BUG?
         </h2>
-
-
         <p>
             Напиши нам, если нашёл баг или хочешь
             предложить новую функцию.
         </p>
-
-
         <a
             href="https://t.me/NEON_DODGE"
             target="_blank"
             rel="noopener"
             class="telegram-btn"
         >
-
             ✈ TELEGRAM
-
             <strong>
                 @NEON_DODGE
             </strong>
-
         </a>
-
     </div>
-
 </div>
-
-
 <!-- =========================
      DAILY
 ========================= -->
-
 <div
     id="dailyPanel"
     class="screen"
 >
-
     <div class="panel-header">
-
         <button
             class="back-btn"
             data-close="dailyPanel"
         >
             ←
         </button>
-
-
         <h2>
             DAILY REWARD
         </h2>
-
     </div>
-
-
     <div class="daily-content">
-
         <div class="daily-icon">
             🎁
         </div>
-
-
         <h2>
             DAILY BONUS
         </h2>
-
-
         <p>
             Заходи каждый день и получай кристаллы.
         </p>
-
-
         <div class="daily-reward">
             💎 +25
         </div>
-
-
         <button
             id="claimDaily"
             class="main-btn"
         >
             CLAIM
         </button>
-
-
         <p id="dailyStatus"></p>
-
     </div>
-
 </div>
-
-
 <!-- =========================
      GAME OVER
 ========================= -->
-
 <div
     id="gameOver"
     class="screen"
 >
-
     <div class="gameover-title">
         GAME OVER
     </div>
-
-
     <div class="final-score">
-
         <span>
             SCORE
         </span>
-
         <strong id="finalScore">
             0
         </strong>
-
     </div>
-
-
     <div class="reward">
-
         💎 +
-
         <span id="rewardAmount">
             0
         </span>
-
     </div>
-
-
     <button
         id="reviveButton"
         class="main-btn revive"
     >
         ▶ REVIVE — WATCH AD
     </button>
-
-
     <button
         id="restartButton"
         class="main-btn"
     >
         ↻ RESTART
     </button>
-
-
     <button
         id="menuButton"
         class="main-btn"
     >
         MENU
     </button>
-
 </div>
-
-
 <!-- =========================
      PAUSE
 ========================= -->
-
 <div
     id="pauseScreen"
     class="screen"
 >
-
     <div class="pause-title">
         PAUSED
     </div>
-
-
     <button
         id="resumeButton"
         class="main-btn"
     >
         ▶ RESUME
     </button>
-
-
     <button
         id="pauseMenuButton"
         class="main-btn"
     >
         MENU
     </button>
-
 </div>
-
-
 <!-- =========================
      TOAST
 ========================= -->
-
 <div id="toast"></div>
-
-
-<!-- ==================================================
+<!-- =========================
      GAME
-     
-     These scripts are loaded BEFORE authentication.
-     Therefore Google cannot prevent the game from loading.
-================================================== -->
-
+========================= -->
 <script src="audio.js"></script>
-
 <script src="game.js"></script>
-
-
-<!-- ==================================================
+<!-- =========================
      SUPABASE
-     
-     Loaded separately after the game.
-================================================== -->
-
+========================= -->
 <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
     onerror="console.warn('Supabase library unavailable')"
 ></script>
-
-
 <script>
-
 (function () {
-
     "use strict";
-
-
     /* =========================
        SUPABASE CONFIG
     ========================= */
-
     const SUPABASE_URL =
         "https://vvnkocavonlstytnnfjw.supabase.co";
-
-
     const SUPABASE_KEY =
         "sb_publishable_OIiVFoWQleCBtBbVLo0pJQ_6SlbEDU-";
-
-
     /* =========================
        AUTH ELEMENTS
     ========================= */
-
     const googleButton =
         document.getElementById(
             "googleLoginButton"
         );
-
-
     const logoutButton =
         document.getElementById(
             "logoutButton"
         );
-
-
     const authStatus =
         document.getElementById(
             "authStatus"
         );
-
-
     const authUser =
         document.getElementById(
             "authUser"
         );
-
-
     /* =========================
        SAFE STATUS
     ========================= */
-
-    function status(
-        text,
-        type
-    ) {
-
+    function status(text, type) {
         if (!authStatus) {
             return;
         }
-
-
         authStatus.textContent =
             text || "";
-
-
         authStatus.classList.remove(
             "error",
             "success"
         );
-
-
         if (type) {
-
             authStatus.classList.add(
                 type
             );
-
         }
-
     }
-
-
     /* =========================
        CHECK SUPABASE
     ========================= */
-
     if (
         !window.supabase ||
         !window.supabase.createClient
     ) {
-
         console.warn(
             "Supabase unavailable."
         );
-
         status(
             "ACCOUNT SERVICE UNAVAILABLE",
             "error"
         );
-
         return;
-
     }
-
-
     /* =========================
        CREATE CLIENT
     ========================= */
-
     let client;
-
-
     try {
-
         client =
             window.supabase.createClient(
                 SUPABASE_URL,
                 SUPABASE_KEY
             );
-
     } catch (error) {
-
         console.warn(
             "Supabase initialization failed:",
             error
         );
-
         status(
             "ACCOUNT SERVICE UNAVAILABLE",
             "error"
         );
-
         return;
-
     }
-
-    /* =========================
-   DEEP LINK CALLBACK
-   ========================= */
-
-if (window.Capacitor) {
-    window.Capacitor.Plugins.App?.addListener("appUrlOpen", async ({ url }) => {
-        try {
-            if (!url || !url.startsWith("neondodge://auth")) return;
-
-            const parsed = new URL(url);
-
-            const code = parsed.searchParams.get("code");
-
-            if (code) {
-                const { error } =
-                    await client.auth.exchangeCodeForSession(code);
-
-                if (error) {
-                    console.error("OAuth callback error:", error);
-                    return;
-                }
-            }
-
-            const hash = new URLSearchParams(
-                (parsed.hash || "").replace(/^#/, "")
-            );
-
-            const accessToken = hash.get("access_token");
-            const refreshToken = hash.get("refresh_token");
-
-            if (accessToken && refreshToken) {
-                const { error } =
-                    await client.auth.setSession({
-                        access_token: accessToken,
-                        refresh_token: refreshToken
-                    });
-
-                if (error) {
-                    console.error("Session error:", error);
-                }
-            }
-
-            await updateAuthUI();
-
-        } catch (e) {
-            console.error("Deep link error:", e);
-        }
-    });
-}
-
     /* =========================
        UPDATE UI
     ========================= */
-
-    function updateUser(
-        user
-    ) {
-
-        if (!googleButton ||
+    function updateUser(user) {
+        if (
+            !googleButton ||
             !logoutButton ||
-            !authUser) {
-
+            !authUser
+        ) {
             return;
-
         }
-
-
         if (user) {
-
             googleButton.style.display =
                 "none";
-
-
             logoutButton.style.display =
                 "flex";
-
-
             const name =
                 user.user_metadata?.full_name ||
                 user.user_metadata?.name ||
                 user.email ||
                 "PLAYER";
-
-
             authUser.textContent =
                 name;
-
-
             status(
                 "ACCOUNT CONNECTED",
                 "success"
             );
-
         } else {
-
             googleButton.style.display =
                 "flex";
-
-
             googleButton.disabled =
                 false;
-
-
             logoutButton.style.display =
                 "none";
-
-
             authUser.textContent =
                 "NOT SIGNED IN";
-
-
             status("");
-
         }
-
     }
-
-
     /* =========================
-       GOOGLE LOGIN
+       GET CURRENT SESSION
     ========================= */
-
-    async function login() {
-
-        if (!client ||
-            !googleButton) {
-
-            return;
-
-        }
-
-
+    async function updateAuthFromSession() {
         try {
-
-            googleButton.disabled =
-                true;
-
-
-            status(
-                "CONNECTING..."
-            );
-
-
-            const redirectUrl =
-             "neondodge://auth";
-
-
             const response =
-                await client.auth.signInWithOAuth({
-
-                    provider: "google",
-
-                    options: {
-
-                        redirectTo:
-                            redirectUrl
-
-                    }
-
-                });
-
-
+                await client.auth.getSession();
             if (response.error) {
-
                 throw response.error;
-
             }
-
-
+            updateUser(
+                response.data?.session?.user ||
+                null
+            );
         } catch (error) {
-
             console.error(
-                "Google login error:",
+                "Session error:",
                 error
             );
-
-
-            googleButton.disabled =
-                false;
-
-
+        }
+    }
+    /* =========================
+       DEEP LINK CALLBACK
+    ========================= */
+    async function handleDeepLink(url) {
+        try {
+            if (
+                !url ||
+                !url.startsWith("neondodge://auth")
+            ) {
+                return;
+            }
+            console.log(
+                "NEON DODGE OAuth callback:",
+                url
+            );
+            const parsed =
+                new URL(url);
+            /* =========================
+               PKCE CALLBACK
+            ========================= */
+            const code =
+                parsed.searchParams.get(
+                    "code"
+                );
+            if (code) {
+                status(
+                    "SIGNING IN..."
+                );
+                const response =
+                    await client.auth.exchangeCodeForSession(
+                        code
+                    );
+                if (response.error) {
+                    console.error(
+                        "OAuth callback error:",
+                        response.error
+                    );
+                    status(
+                        "LOGIN ERROR: " +
+                        (
+                            response.error.message ||
+                            "CODE EXCHANGE FAILED"
+                        ),
+                        "error"
+                    );
+                    if (googleButton) {
+                        googleButton.disabled =
+                            false;
+                    }
+                    return;
+                }
+            }
+            /* =========================
+               TOKEN CALLBACK
+            ========================= */
+            const hash =
+                new URLSearchParams(
+                    (parsed.hash || "")
+                        .replace(/^#/, "")
+                );
+            const accessToken =
+                hash.get(
+                    "access_token"
+                );
+            const refreshToken =
+                hash.get(
+                    "refresh_token"
+                );
+            if (
+                accessToken &&
+                refreshToken
+            ) {
+                const response =
+                    await client.auth.setSession({
+                        access_token:
+                            accessToken,
+                        refresh_token:
+                            refreshToken
+                    });
+                if (response.error) {
+                    console.error(
+                        "Session error:",
+                        response.error
+                    );
+                    status(
+                        "LOGIN ERROR",
+                        "error"
+                    );
+                    if (googleButton) {
+                        googleButton.disabled =
+                            false;
+                    }
+                    return;
+                }
+            }
+            /* =========================
+               UPDATE AUTH UI
+            ========================= */
+            await updateAuthFromSession();
+        } catch (error) {
+            console.error(
+                "Deep link error:",
+                error
+            );
             status(
                 "LOGIN ERROR: " +
                 (
@@ -1383,183 +921,190 @@ if (window.Capacitor) {
                 ),
                 "error"
             );
-
+            if (googleButton) {
+                googleButton.disabled =
+                    false;
+            }
         }
-
     }
-
-
+    /* =========================
+       CAPACITOR DEEP LINK
+    ========================= */
+    if (window.Capacitor) {
+        try {
+            const App =
+                window.Capacitor.Plugins?.App;
+            if (App) {
+                App.addListener(
+                    "appUrlOpen",
+                    async function ({ url }) {
+                        await handleDeepLink(
+                            url
+                        );
+                    }
+                );
+                console.log(
+                    "NEON DODGE Deep Link listener ready"
+                );
+            } else {
+                console.warn(
+                    "Capacitor App plugin unavailable"
+                );
+            }
+        } catch (error) {
+            console.warn(
+                "Deep Link listener failed:",
+                error
+            );
+        }
+    }
+    /* =========================
+       GOOGLE LOGIN
+    ========================= */
+    async function login() {
+        if (
+            !client ||
+            !googleButton
+        ) {
+            return;
+        }
+        try {
+            googleButton.disabled =
+                true;
+            status(
+                "CONNECTING..."
+            );
+            const redirectUrl =
+                "neondodge://auth";
+            const response =
+                await client.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                        redirectTo:
+                            redirectUrl
+                    }
+                });
+            if (response.error) {
+                throw response.error;
+            }
+            console.log(
+                "Google OAuth started"
+            );
+        } catch (error) {
+            console.error(
+                "Google login error:",
+                error
+            );
+            googleButton.disabled =
+                false;
+            status(
+                "LOGIN ERROR: " +
+                (
+                    error?.message ||
+                    "UNKNOWN ERROR"
+                ),
+                "error"
+            );
+        }
+    }
     /* =========================
        LOGOUT
     ========================= */
-
     async function logout() {
-
         if (!client) {
             return;
         }
-
-
         try {
-
             status(
                 "LOGGING OUT..."
             );
-
-
             const response =
                 await client.auth.signOut();
-
-
             if (response.error) {
-
                 throw response.error;
-
             }
-
-
             updateUser(null);
-
-
         } catch (error) {
-
             console.error(
                 "Logout error:",
                 error
             );
-
-
             status(
                 "LOGOUT ERROR",
                 "error"
             );
-
         }
-
     }
-
-
     /* =========================
        BUTTONS
     ========================= */
-
     if (googleButton) {
-
         googleButton.addEventListener(
             "click",
             login
         );
-
     }
-
-
     if (logoutButton) {
-
         logoutButton.addEventListener(
             "click",
             logout
         );
-
     }
-
-
     /* =========================
        AUTH STATE
     ========================= */
-
     try {
-
         client.auth.onAuthStateChange(
             function (
                 event,
                 session
             ) {
-
                 console.log(
                     "AUTH:",
                     event
                 );
-
-
                 updateUser(
-                    session?.user || null
+                    session?.user ||
+                    null
                 );
-
             }
         );
-
     } catch (error) {
-
         console.warn(
             "Auth listener failed:",
             error
         );
-
     }
-
-
     /* =========================
        INITIAL SESSION
     ========================= */
-
     async function initAuth() {
-
         try {
-
             const response =
                 await client.auth.getSession();
-
-
             if (response.error) {
-
                 throw response.error;
-
             }
-
-
             updateUser(
                 response.data?.session?.user ||
                 null
             );
-
-
         } catch (error) {
-
             console.warn(
                 "Could not get auth session:",
                 error
             );
-
-
-            /*
-             * IMPORTANT:
-             * Nothing here affects the game.
-             */
-
             if (googleButton) {
-
                 googleButton.disabled =
                     false;
-
             }
-
         }
-
     }
-
-
     /* =========================
        START AUTH
     ========================= */
-
     initAuth();
-
-
 })();
-
 </script>
-
-
 </body>
-
 </html>
