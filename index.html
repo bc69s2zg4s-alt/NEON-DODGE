@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -8,43 +10,59 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     >
 
-    <meta name="theme-color" content="#05060b">
+    <meta
+        name="theme-color"
+        content="#05060b"
+    >
 
     <title>NEON DODGE</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
 
     <style>
+
         /* =========================
-           ACCOUNT / GOOGLE AUTH
+           GOOGLE AUTH
         ========================= */
 
         .account-box {
             width: min(360px, 88vw);
             margin: 20px auto 0;
-            padding: 18px;
+            padding: 16px;
+
             box-sizing: border-box;
 
             background: rgba(255,255,255,.045);
+
             border: 1px solid rgba(255,255,255,.10);
+
             border-radius: 16px;
         }
 
         .account-title {
+            margin-bottom: 12px;
+
+            text-align: center;
+
+            color: rgba(255,255,255,.55);
+
             font-size: 11px;
             font-weight: 900;
+
             letter-spacing: 2px;
-            color: rgba(255,255,255,.55);
-            margin-bottom: 12px;
-            text-align: center;
         }
 
         .account-user {
-            text-align: center;
             margin-bottom: 12px;
 
+            text-align: center;
+
             color: #fff;
-            font-size: 11px;
+
+            font-size: 10px;
             font-weight: 800;
 
             overflow: hidden;
@@ -54,45 +72,62 @@
 
         .google-login-btn,
         .logout-btn {
+
             width: 100%;
             min-height: 46px;
-
-            border-radius: 11px;
-
-            font-family: inherit;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing: 1px;
-
-            cursor: pointer;
 
             display: flex;
             align-items: center;
             justify-content: center;
+
             gap: 10px;
 
-            transition: transform .12s, opacity .12s;
+            border-radius: 11px;
+
+            font-family: inherit;
+
+            font-size: 10px;
+            font-weight: 900;
+
+            letter-spacing: 1px;
+
+            cursor: pointer;
+
+            transition:
+                transform .12s,
+                opacity .12s;
+
         }
 
         .google-login-btn {
+
             color: #fff;
 
-            background: rgba(255,255,255,.09);
+            background:
+                rgba(255,255,255,.09);
 
-            border: 1px solid rgba(255,255,255,.20);
+            border:
+                1px solid rgba(255,255,255,.20);
+
         }
 
         .google-login-btn:active,
         .logout-btn:active {
+
             transform: scale(.97);
+
         }
 
         .google-login-btn:disabled {
-            opacity: .45;
+
+            opacity: .5;
+
             pointer-events: none;
+
         }
 
         .google-icon {
+
             width: 24px;
             height: 24px;
 
@@ -100,44 +135,61 @@
             align-items: center;
             justify-content: center;
 
-            background: #fff;
-            color: #4285f4;
-
             border-radius: 50%;
 
+            background: #fff;
+
+            color: #4285f4;
+
             font-family: Arial, sans-serif;
+
             font-size: 16px;
             font-weight: 900;
+
         }
 
         .logout-btn {
-            color: rgba(255,255,255,.75);
 
-            background: rgba(255,255,255,.05);
+            color:
+                rgba(255,255,255,.75);
 
-            border: 1px solid rgba(255,255,255,.12);
+            background:
+                rgba(255,255,255,.05);
+
+            border:
+                1px solid rgba(255,255,255,.12);
+
         }
 
         .auth-status {
+
             min-height: 17px;
+
             margin-top: 8px;
 
             text-align: center;
 
-            color: rgba(255,255,255,.55);
+            color:
+                rgba(255,255,255,.55);
 
             font-size: 8px;
+
             line-height: 12px;
 
             overflow-wrap: anywhere;
+
         }
 
         .auth-status.error {
+
             color: #ff6b6b;
+
         }
 
         .auth-status.success {
+
             color: #6dffb0;
+
         }
 
         /* =========================
@@ -145,15 +197,31 @@
         ========================= */
 
         @media (max-width: 430px) {
+
             .account-box {
+
                 width: 88vw;
+
                 padding: 15px;
+
             }
+
         }
+
     </style>
+
 </head>
 
+
 <body>
+
+
+<!-- =========================
+     GAME CANVAS
+========================= -->
+
+<canvas id="gameCanvas"></canvas>
+
 
 <!-- =========================
      HUD
@@ -164,46 +232,107 @@
     <div class="hud-top">
 
         <div>
-            <span class="hud-label">SCORE</span>
-            <strong id="score">0</strong>
+
+            <span class="hud-label">
+                SCORE
+            </span>
+
+            <strong id="score">
+                0
+            </strong>
+
         </div>
+
 
         <div class="hud-center">
-            <span class="hud-label">MULTIPLIER</span>
-            <strong id="multiplier">x1</strong>
+
+            <span class="hud-label">
+                MULTIPLIER
+            </span>
+
+            <strong id="multiplier">
+                x1
+            </strong>
+
         </div>
+
 
         <div>
-            <span class="hud-label">BEST</span>
-            <strong id="best">0</strong>
+
+            <span class="hud-label">
+                BEST
+            </span>
+
+            <strong id="best">
+                0
+            </strong>
+
         </div>
 
-        <button id="pauseButton" class="mini-btn">
+
+        <button
+            id="pauseButton"
+            class="mini-btn"
+        >
             Ⅱ
         </button>
 
     </div>
 
+
     <div class="hud-bottom">
 
         <div class="stat-box">
-            <span>❤️</span>
-            <strong id="health">1</strong>
+
+            <span>
+                ❤️
+            </span>
+
+            <strong id="health">
+                1
+            </strong>
+
         </div>
+
 
         <div class="stat-box">
-            <span>💎</span>
-            <strong id="crystals">0</strong>
+
+            <span>
+                💎
+            </span>
+
+            <strong id="crystals">
+                0
+            </strong>
+
         </div>
 
-        <button id="shieldButton" class="ability-btn">
+
+        <button
+            id="shieldButton"
+            class="ability-btn"
+        >
+
             🛡️
-            <small>SHIELD</small>
+
+            <small>
+                SHIELD
+            </small>
+
         </button>
 
-        <button id="empButton" class="ability-btn">
+
+        <button
+            id="empButton"
+            class="ability-btn"
+        >
+
             ⚡
-            <small>EMP</small>
+
+            <small>
+                EMP
+            </small>
+
         </button>
 
     </div>
@@ -237,44 +366,86 @@
      MAIN MENU
 ========================= -->
 
-<div id="menu" class="screen active">
+<div
+    id="menu"
+    class="screen active"
+>
 
     <div class="logo">
-        <div>NEON</div>
-        <span>DODGE</span>
+
+        <div>
+            NEON
+        </div>
+
+        <span>
+            DODGE
+        </span>
+
     </div>
+
 
     <div class="menu-subtitle">
         SURVIVE THE NEON HELL
     </div>
 
+
     <div class="menu-buttons">
 
-        <button id="playButton" class="main-btn">
-            <span>▶</span> PLAY
+        <button
+            id="playButton"
+            class="main-btn"
+        >
+            <span>▶</span>
+            PLAY
         </button>
 
-        <button id="shopButton" class="main-btn">
-            <span>◆</span> SHOP
+
+        <button
+            id="shopButton"
+            class="main-btn"
+        >
+            <span>◆</span>
+            SHOP
         </button>
 
-        <button id="settingsButton" class="main-btn">
-            <span>⚙</span> SETTINGS
+
+        <button
+            id="settingsButton"
+            class="main-btn"
+        >
+            <span>⚙</span>
+            SETTINGS
         </button>
 
-        <button id="feedbackButton" class="main-btn">
-            <span>✉</span> FEEDBACK
+
+        <button
+            id="feedbackButton"
+            class="main-btn"
+        >
+            <span>✉</span>
+            FEEDBACK
         </button>
 
-        <button id="dailyButton" class="main-btn">
-            <span>🎁</span> DAILY REWARD
+
+        <button
+            id="dailyButton"
+            class="main-btn"
+        >
+            <span>🎁</span>
+            DAILY REWARD
         </button>
 
     </div>
 
+
     <div class="menu-crystals">
+
         💎
-        <span id="menuCrystals">0</span>
+
+        <span id="menuCrystals">
+            0
+        </span>
+
     </div>
 
 </div>
@@ -284,7 +455,10 @@
      SHOP
 ========================= -->
 
-<div id="shopPanel" class="screen">
+<div
+    id="shopPanel"
+    class="screen"
+>
 
     <div class="panel-header">
 
@@ -295,17 +469,27 @@
             ←
         </button>
 
-        <h2>UPGRADES</h2>
+
+        <h2>
+            UPGRADES
+        </h2>
+
 
         <div class="panel-currency">
+
             💎
-            <span id="shopCrystals">0</span>
+
+            <span id="shopCrystals">
+                0
+            </span>
+
         </div>
 
     </div>
 
 
     <div class="shop-list">
+
 
         <div class="upgrade">
 
@@ -315,7 +499,9 @@
 
             <div class="upgrade-info">
 
-                <h3>EXTRA LIFE</h3>
+                <h3>
+                    EXTRA LIFE
+                </h3>
 
                 <p>
                     +1 maximum life
@@ -342,7 +528,9 @@
 
             <div class="upgrade-info">
 
-                <h3>NEON WEAPON</h3>
+                <h3>
+                    NEON WEAPON
+                </h3>
 
                 <p>
                     Unlock automatic shooting
@@ -369,7 +557,9 @@
 
             <div class="upgrade-info">
 
-                <h3>WEAPON DAMAGE</h3>
+                <h3>
+                    WEAPON DAMAGE
+                </h3>
 
                 <p>
                     More damage per shot
@@ -396,7 +586,9 @@
 
             <div class="upgrade-info">
 
-                <h3>SHIELD</h3>
+                <h3>
+                    SHIELD
+                </h3>
 
                 <p>
                     Better shield cooldown
@@ -423,7 +615,9 @@
 
             <div class="upgrade-info">
 
-                <h3>EMP</h3>
+                <h3>
+                    EMP
+                </h3>
 
                 <p>
                     Stronger EMP radius
@@ -441,6 +635,7 @@
 
         </div>
 
+
     </div>
 
 </div>
@@ -450,7 +645,10 @@
      SETTINGS
 ========================= -->
 
-<div id="settingsPanel" class="screen">
+<div
+    id="settingsPanel"
+    class="screen"
+>
 
     <div class="panel-header">
 
@@ -461,19 +659,31 @@
             ←
         </button>
 
-        <h2>SETTINGS</h2>
+
+        <h2>
+            SETTINGS
+        </h2>
 
     </div>
 
 
     <div class="settings-list">
 
+
         <div class="setting">
 
             <div>
-                <h3>🎵 MUSIC</h3>
-                <p>Background music</p>
+
+                <h3>
+                    🎵 MUSIC
+                </h3>
+
+                <p>
+                    Background music
+                </p>
+
             </div>
+
 
             <button
                 id="musicToggle"
@@ -488,9 +698,17 @@
         <div class="setting">
 
             <div>
-                <h3>🔊 SOUND</h3>
-                <p>Game sounds</p>
+
+                <h3>
+                    🔊 SOUND
+                </h3>
+
+                <p>
+                    Game sounds
+                </p>
+
             </div>
+
 
             <button
                 id="soundToggle"
@@ -505,9 +723,17 @@
         <div class="setting">
 
             <div>
-                <h3>📳 VIBRATION</h3>
-                <p>Haptic feedback</p>
+
+                <h3>
+                    📳 VIBRATION
+                </h3>
+
+                <p>
+                    Haptic feedback
+                </p>
+
             </div>
+
 
             <button
                 id="vibrationToggle"
@@ -517,6 +743,7 @@
             </button>
 
         </div>
+
 
     </div>
 
@@ -531,12 +758,14 @@
             ACCOUNT
         </div>
 
+
         <div
             id="authUser"
             class="account-user"
         >
             NOT SIGNED IN
         </div>
+
 
         <button
             id="googleLoginButton"
@@ -579,7 +808,10 @@
      FEEDBACK
 ========================= -->
 
-<div id="feedbackPanel" class="screen">
+<div
+    id="feedbackPanel"
+    class="screen"
+>
 
     <div class="panel-header">
 
@@ -590,7 +822,10 @@
             ←
         </button>
 
-        <h2>FEEDBACK</h2>
+
+        <h2>
+            FEEDBACK
+        </h2>
 
     </div>
 
@@ -601,14 +836,17 @@
             ✉
         </div>
 
+
         <h2>
             FOUND A BUG?
         </h2>
+
 
         <p>
             Напиши нам, если нашёл баг или хочешь
             предложить новую функцию.
         </p>
+
 
         <a
             href="https://t.me/NEON_DODGE"
@@ -616,6 +854,7 @@
             rel="noopener"
             class="telegram-btn"
         >
+
             ✈ TELEGRAM
 
             <strong>
@@ -633,7 +872,10 @@
      DAILY
 ========================= -->
 
-<div id="dailyPanel" class="screen">
+<div
+    id="dailyPanel"
+    class="screen"
+>
 
     <div class="panel-header">
 
@@ -644,7 +886,10 @@
             ←
         </button>
 
-        <h2>DAILY REWARD</h2>
+
+        <h2>
+            DAILY REWARD
+        </h2>
 
     </div>
 
@@ -655,17 +900,21 @@
             🎁
         </div>
 
+
         <h2>
             DAILY BONUS
         </h2>
+
 
         <p>
             Заходи каждый день и получай кристаллы.
         </p>
 
+
         <div class="daily-reward">
             💎 +25
         </div>
+
 
         <button
             id="claimDaily"
@@ -673,6 +922,7 @@
         >
             CLAIM
         </button>
+
 
         <p id="dailyStatus"></p>
 
@@ -685,15 +935,21 @@
      GAME OVER
 ========================= -->
 
-<div id="gameOver" class="screen">
+<div
+    id="gameOver"
+    class="screen"
+>
 
     <div class="gameover-title">
         GAME OVER
     </div>
 
+
     <div class="final-score">
 
-        <span>SCORE</span>
+        <span>
+            SCORE
+        </span>
 
         <strong id="finalScore">
             0
@@ -743,11 +999,15 @@
      PAUSE
 ========================= -->
 
-<div id="pauseScreen" class="screen">
+<div
+    id="pauseScreen"
+    class="screen"
+>
 
     <div class="pause-title">
         PAUSED
     </div>
+
 
     <button
         id="resumeButton"
@@ -755,6 +1015,7 @@
     >
         ▶ RESUME
     </button>
+
 
     <button
         id="pauseMenuButton"
@@ -774,11 +1035,10 @@
 
 
 <!-- ==================================================
-     GAME SCRIPTS
+     GAME
      
-     IMPORTANT:
-     GAME LOADS FIRST.
-     AUTH IS COMPLETELY SEPARATE.
+     These scripts are loaded BEFORE authentication.
+     Therefore Google cannot prevent the game from loading.
 ================================================== -->
 
 <script src="audio.js"></script>
@@ -787,50 +1047,57 @@
 
 
 <!-- ==================================================
-     SUPABASE AUTH
+     SUPABASE
+     
+     Loaded separately after the game.
 ================================================== -->
 
 <script
     src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-    onerror="console.warn('Supabase library failed to load.')"
+    onerror="console.warn('Supabase library unavailable')"
 ></script>
 
 
 <script>
+
 (function () {
 
     "use strict";
 
 
-    /* ==================================================
+    /* =========================
        SUPABASE CONFIG
-    ================================================== */
+    ========================= */
 
     const SUPABASE_URL =
         "https://vvnkocavonlstytnnfjw.supabase.co";
+
 
     const SUPABASE_KEY =
         "sb_publishable_OIiVFoWQleCBtBbVLo0pJQ_6SlbEDU-";
 
 
-    /* ==================================================
-       ELEMENTS
-    ================================================== */
+    /* =========================
+       AUTH ELEMENTS
+    ========================= */
 
-    const googleLoginButton =
+    const googleButton =
         document.getElementById(
             "googleLoginButton"
         );
+
 
     const logoutButton =
         document.getElementById(
             "logoutButton"
         );
 
+
     const authStatus =
         document.getElementById(
             "authStatus"
         );
+
 
     const authUser =
         document.getElementById(
@@ -838,71 +1105,11 @@
         );
 
 
-    /* ==================================================
-       CHECK SUPABASE
-       
-       If Supabase is unavailable,
-       THE GAME STILL WORKS.
-    ================================================== */
+    /* =========================
+       SAFE STATUS
+    ========================= */
 
-    if (
-        !window.supabase ||
-        !window.supabase.createClient
-    ) {
-
-        console.warn(
-            "Supabase is unavailable. Game continues normally."
-        );
-
-        if (googleLoginButton) {
-            googleLoginButton.disabled = false;
-        }
-
-        if (authStatus) {
-            authStatus.textContent =
-                "ACCOUNT SERVICE UNAVAILABLE";
-        }
-
-        return;
-
-    }
-
-
-    /* ==================================================
-       CREATE CLIENT
-    ================================================== */
-
-    let supabaseClient = null;
-
-    try {
-
-        supabaseClient =
-            window.supabase.createClient(
-                SUPABASE_URL,
-                SUPABASE_KEY
-            );
-
-    } catch (error) {
-
-        console.error(
-            "Supabase initialization error:",
-            error
-        );
-
-        if (authStatus) {
-            authStatus.textContent =
-                "ACCOUNT SERVICE UNAVAILABLE";
-        }
-
-        return;
-    }
-
-
-    /* ==================================================
-       STATUS
-    ================================================== */
-
-    function setAuthStatus(
+    function status(
         text,
         type
     ) {
@@ -911,40 +1118,105 @@
             return;
         }
 
+
         authStatus.textContent =
             text || "";
+
 
         authStatus.classList.remove(
             "error",
             "success"
         );
 
+
         if (type) {
-            authStatus.classList.add(type);
+
+            authStatus.classList.add(
+                type
+            );
+
         }
 
     }
 
 
-    /* ==================================================
-       UPDATE ACCOUNT UI
-    ================================================== */
+    /* =========================
+       CHECK SUPABASE
+    ========================= */
 
-    function updateAuthUI(user) {
+    if (
+        !window.supabase ||
+        !window.supabase.createClient
+    ) {
 
-        if (
-            !googleLoginButton ||
+        console.warn(
+            "Supabase unavailable."
+        );
+
+        status(
+            "ACCOUNT SERVICE UNAVAILABLE",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    /* =========================
+       CREATE CLIENT
+    ========================= */
+
+    let client;
+
+
+    try {
+
+        client =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+    } catch (error) {
+
+        console.warn(
+            "Supabase initialization failed:",
+            error
+        );
+
+        status(
+            "ACCOUNT SERVICE UNAVAILABLE",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    /* =========================
+       UPDATE UI
+    ========================= */
+
+    function updateUser(
+        user
+    ) {
+
+        if (!googleButton ||
             !logoutButton ||
-            !authUser
-        ) {
+            !authUser) {
+
             return;
+
         }
 
 
         if (user) {
 
-            googleLoginButton.style.display =
+            googleButton.style.display =
                 "none";
+
 
             logoutButton.style.display =
                 "flex";
@@ -961,72 +1233,67 @@
                 name;
 
 
-            setAuthStatus(
+            status(
                 "ACCOUNT CONNECTED",
                 "success"
             );
 
         } else {
 
-            googleLoginButton.style.display =
+            googleButton.style.display =
                 "flex";
+
+
+            googleButton.disabled =
+                false;
+
 
             logoutButton.style.display =
                 "none";
-
-
-            googleLoginButton.disabled =
-                false;
 
 
             authUser.textContent =
                 "NOT SIGNED IN";
 
 
-            setAuthStatus(
-                ""
-            );
+            status("");
 
         }
 
     }
 
 
-    /* ==================================================
+    /* =========================
        GOOGLE LOGIN
-    ================================================== */
+    ========================= */
 
-    async function loginWithGoogle() {
+    async function login() {
 
-        if (
-            !googleLoginButton ||
-            !supabaseClient
-        ) {
+        if (!client ||
+            !googleButton) {
+
             return;
+
         }
 
 
         try {
 
-            googleLoginButton.disabled =
+            googleButton.disabled =
                 true;
 
 
-            setAuthStatus(
+            status(
                 "CONNECTING..."
             );
 
-
-            /*
-             * Return to the exact current site.
-             */
 
             const redirectUrl =
                 window.location.origin;
 
 
-            const result =
-                await supabaseClient.auth.signInWithOAuth({
+            const response =
+                await client.auth.signInWithOAuth({
 
                     provider: "google",
 
@@ -1040,8 +1307,10 @@
                 });
 
 
-            if (result.error) {
-                throw result.error;
+            if (response.error) {
+
+                throw response.error;
+
             }
 
 
@@ -1053,11 +1322,11 @@
             );
 
 
-            googleLoginButton.disabled =
+            googleButton.disabled =
                 false;
 
 
-            setAuthStatus(
+            status(
                 "LOGIN ERROR: " +
                 (
                     error?.message ||
@@ -1071,36 +1340,36 @@
     }
 
 
-    /* ==================================================
+    /* =========================
        LOGOUT
-    ================================================== */
+    ========================= */
 
     async function logout() {
 
-        if (!supabaseClient) {
+        if (!client) {
             return;
         }
 
 
         try {
 
-            setAuthStatus(
+            status(
                 "LOGGING OUT..."
             );
 
 
-            const result =
-                await supabaseClient.auth.signOut();
+            const response =
+                await client.auth.signOut();
 
 
-            if (result.error) {
-                throw result.error;
+            if (response.error) {
+
+                throw response.error;
+
             }
 
 
-            updateAuthUI(
-                null
-            );
+            updateUser(null);
 
 
         } catch (error) {
@@ -1111,7 +1380,7 @@
             );
 
 
-            setAuthStatus(
+            status(
                 "LOGOUT ERROR",
                 "error"
             );
@@ -1121,19 +1390,15 @@
     }
 
 
-    /* ==================================================
-       BUTTON EVENTS
-    ================================================== */
+    /* =========================
+       BUTTONS
+    ========================= */
 
-    if (googleLoginButton) {
+    if (googleButton) {
 
-        googleLoginButton.addEventListener(
+        googleButton.addEventListener(
             "click",
-            function () {
-
-                loginWithGoogle();
-
-            }
+            login
         );
 
     }
@@ -1143,23 +1408,19 @@
 
         logoutButton.addEventListener(
             "click",
-            function () {
-
-                logout();
-
-            }
+            logout
         );
 
     }
 
 
-    /* ==================================================
+    /* =========================
        AUTH STATE
-    ================================================== */
+    ========================= */
 
     try {
 
-        supabaseClient.auth.onAuthStateChange(
+        client.auth.onAuthStateChange(
             function (
                 event,
                 session
@@ -1167,12 +1428,11 @@
 
                 console.log(
                     "AUTH:",
-                    event,
-                    session?.user?.email || ""
+                    event
                 );
 
 
-                updateAuthUI(
+                updateUser(
                     session?.user || null
                 );
 
@@ -1182,35 +1442,34 @@
     } catch (error) {
 
         console.warn(
-            "Auth listener error:",
+            "Auth listener failed:",
             error
         );
 
     }
 
 
-    /* ==================================================
-       GET CURRENT SESSION
-       
-       This is intentionally independent
-       from the game.
-    ================================================== */
+    /* =========================
+       INITIAL SESSION
+    ========================= */
 
     async function initAuth() {
 
         try {
 
-            const result =
-                await supabaseClient.auth.getSession();
+            const response =
+                await client.auth.getSession();
 
 
-            if (result.error) {
-                throw result.error;
+            if (response.error) {
+
+                throw response.error;
+
             }
 
 
-            updateAuthUI(
-                result.data?.session?.user ||
+            updateUser(
+                response.data?.session?.user ||
                 null
             );
 
@@ -1218,19 +1477,21 @@
         } catch (error) {
 
             console.warn(
-                "Auth session unavailable:",
+                "Could not get auth session:",
                 error
             );
 
 
             /*
              * IMPORTANT:
-             * Don't stop the game.
+             * Nothing here affects the game.
              */
 
-            if (googleLoginButton) {
-                googleLoginButton.disabled =
+            if (googleButton) {
+
+                googleButton.disabled =
                     false;
+
             }
 
         }
@@ -1238,15 +1499,18 @@
     }
 
 
-    /* ==================================================
+    /* =========================
        START AUTH
-    ================================================== */
+    ========================= */
 
     initAuth();
 
 
 })();
+
 </script>
 
+
 </body>
+
 </html>
