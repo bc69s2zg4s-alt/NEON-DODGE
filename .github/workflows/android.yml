@@ -21,12 +21,12 @@ jobs:
             -keypass 20fe06da \
             -dname "CN=NEON DODGE, OU=Game, O=FXD, L=Almaty, ST=Almaty, C=KZ"
 
-      - name: Show SHA-1
+      - name: Show certificate fingerprints
         run: |
           keytool -list -v \
             -keystore neon-dodge-release.jks \
             -alias neon-dodge \
-            -storepass NEONDODGE2026 | grep "SHA1:"
+            -storepass NEONDODGE2026
 
       - name: Upload signing key
         uses: actions/upload-artifact@v4
