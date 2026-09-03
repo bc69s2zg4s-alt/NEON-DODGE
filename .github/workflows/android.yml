@@ -16,11 +16,19 @@ jobs:
         with:
           node-version: 20
 
+      - name: Prepare web files
+        run: |
+          mkdir www
+          cp index.html www/
+          cp style.css www/
+          cp game.js www/
+          cp audio.js www/
+
       - name: Create Capacitor project
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=.
+          npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
           npx cap add android
           npx cap copy android
 
