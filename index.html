@@ -2,14 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    >
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <meta name="theme-color" content="#05060b">
-
     <title>NEON DODGE</title>
 
     <link rel="stylesheet" href="style.css">
@@ -19,373 +15,308 @@
 
 <canvas id="gameCanvas"></canvas>
 
-<!-- ================= HUD ================= -->
+<!-- HUD -->
+<div id="hud">
 
-<div id="hud" class="hidden">
-
-    <div class="hud-block">
-        <span>SCORE</span>
-        <strong id="score">0</strong>
-    </div>
-
-    <div class="hud-block center">
-        <span>COMBO</span>
-        <strong id="multiplier">×1.00</strong>
-    </div>
-
-    <div class="hud-block right">
-        <span>BEST</span>
-        <strong id="best">0</strong>
-    </div>
-
-    <button id="pauseButton" class="hud-button">Ⅱ</button>
-
-    <div id="healthHud"></div>
-
-    <div id="weaponHud">
-        <div class="ability-title">SHOT</div>
-        <div class="cooldown-bar">
-            <div id="weaponCooldown"></div>
+    <div class="hud-top">
+        <div>
+            <span class="hud-label">SCORE</span>
+            <strong id="score">0</strong>
         </div>
+
+        <div class="hud-center">
+            <span class="hud-label">MULTIPLIER</span>
+            <strong id="multiplier">x1</strong>
+        </div>
+
+        <div>
+            <span class="hud-label">BEST</span>
+            <strong id="best">0</strong>
+        </div>
+
+        <button id="pauseButton" class="mini-btn">Ⅱ</button>
     </div>
 
-    <div id="abilityHud">
-        <button id="shieldButton" class="ability-button">
-            🛡
+    <div class="hud-bottom">
+
+        <div class="stat-box">
+            <span>❤️</span>
+            <strong id="health">1</strong>
+        </div>
+
+        <div class="stat-box">
+            <span>💎</span>
+            <strong id="crystals">0</strong>
+        </div>
+
+        <button id="shieldButton" class="ability-btn">
+            🛡️
+            <small>SHIELD</small>
         </button>
 
-        <button id="empButton" class="ability-button">
+        <button id="empButton" class="ability-btn">
             ⚡
+            <small>EMP</small>
         </button>
-    </div>
-
-    <div id="crystalHud">
-        💎 <span id="gameCrystals">0</span>
     </div>
 
 </div>
 
+<!-- Buffs -->
+<div id="buffContainer"></div>
 
-<!-- ================= MAIN MENU ================= -->
+<!-- Event warning -->
+<div id="eventWarning">
+    <div id="eventWarningTitle">WARNING</div>
+    <div id="eventWarningText"></div>
+</div>
 
-<div id="menuScreen" class="screen">
+<!-- MENU -->
+<div id="menu" class="screen active">
 
     <div class="logo">
-        NEON
+        <div>NEON</div>
         <span>DODGE</span>
     </div>
 
-    <div class="subtitle">
-        SURVIVE THE VOID
+    <div class="menu-subtitle">
+        SURVIVE THE NEON HELL
     </div>
-
-    <div class="currency">
-        💎 <span id="menuCrystals">0</span>
-    </div>
-
-    <button id="playButton" class="main-button">
-        PLAY
-    </button>
 
     <div class="menu-buttons">
 
-        <button id="shopButton" class="secondary-button">
-            🛒 SHOP
+        <button id="playButton" class="main-btn">
+            <span>▶</span> PLAY
         </button>
 
-        <button id="settingsButton" class="secondary-button">
-            ⚙ SETTINGS
+        <button id="shopButton" class="main-btn">
+            <span>◆</span> SHOP
         </button>
 
-        <button id="feedbackButton" class="secondary-button">
-            💬 FEEDBACK
+        <button id="settingsButton" class="main-btn">
+            <span>⚙</span> SETTINGS
+        </button>
+
+        <button id="feedbackButton" class="main-btn">
+            <span>✉</span> FEEDBACK
+        </button>
+
+        <button id="dailyButton" class="main-btn">
+            <span>🎁</span> DAILY REWARD
         </button>
 
     </div>
 
-    <div id="dailyButton" class="daily">
-        🎁 DAILY REWARD
+    <div class="menu-crystals">
+        💎 <span id="menuCrystals">0</span>
     </div>
 
 </div>
 
+<!-- SHOP -->
+<div id="shopPanel" class="screen">
 
-<!-- ================= SHOP ================= -->
+    <div class="panel-header">
+        <button class="back-btn" data-close="shopPanel">←</button>
+        <h2>UPGRADES</h2>
+        <div class="panel-currency">💎 <span id="shopCrystals">0</span></div>
+    </div>
 
-<div id="shopScreen" class="screen panel-screen hidden">
+    <div class="shop-list">
 
-    <div class="panel">
-
-        <button class="close-button" data-close="shopScreen">
-            ×
-        </button>
-
-        <h1>SHOP</h1>
-
-        <div class="shop-currency">
-            💎 <span id="shopCrystals">0</span>
+        <div class="upgrade">
+            <div class="upgrade-icon">❤️</div>
+            <div class="upgrade-info">
+                <h3>EXTRA LIFE</h3>
+                <p>+1 maximum life</p>
+                <small id="lifeLevel">LEVEL 1/3</small>
+            </div>
+            <button id="buyLife">80 💎</button>
         </div>
 
-        <div class="shop-list">
-
-            <div class="upgrade">
-                <div class="upgrade-icon">❤️</div>
-
-                <div class="upgrade-info">
-                    <h3>EXTRA LIFE</h3>
-                    <p>+1 maximum life</p>
-                    <small id="lifeLevel">LEVEL 1 / 3</small>
-                </div>
-
-                <button id="buyLife">BUY</button>
+        <div class="upgrade">
+            <div class="upgrade-icon">🔫</div>
+            <div class="upgrade-info">
+                <h3>NEON WEAPON</h3>
+                <p>Unlock automatic shooting</p>
+                <small id="weaponLevel">LOCKED</small>
             </div>
+            <button id="buyWeapon">150 💎</button>
+        </div>
 
-
-            <div class="upgrade">
-                <div class="upgrade-icon">🔫</div>
-
-                <div class="upgrade-info">
-                    <h3>ENERGY SHOT</h3>
-                    <p>Destroy incoming enemies</p>
-                    <small id="weaponLevel">LOCKED</small>
-                </div>
-
-                <button id="buyWeapon">BUY</button>
+        <div class="upgrade">
+            <div class="upgrade-icon">💥</div>
+            <div class="upgrade-info">
+                <h3>WEAPON DAMAGE</h3>
+                <p>More damage per shot</p>
+                <small id="damageLevel">LEVEL 1/3</small>
             </div>
+            <button id="buyDamage">100 💎</button>
+        </div>
 
-
-            <div class="upgrade">
-                <div class="upgrade-icon">💥</div>
-
-                <div class="upgrade-info">
-                    <h3>SHOT POWER</h3>
-                    <p>Increase projectile damage</p>
-                    <small id="damageLevel">LEVEL 1 / 3</small>
-                </div>
-
-                <button id="buyDamage">BUY</button>
+        <div class="upgrade">
+            <div class="upgrade-icon">🛡️</div>
+            <div class="upgrade-info">
+                <h3>SHIELD</h3>
+                <p>Better shield cooldown</p>
+                <small id="shieldLevel">LEVEL 1/3</small>
             </div>
+            <button id="buyShield">90 💎</button>
+        </div>
 
-
-            <div class="upgrade">
-                <div class="upgrade-icon">🛡</div>
-
-                <div class="upgrade-info">
-                    <h3>SHIELD</h3>
-                    <p>Temporary protection</p>
-                    <small id="shieldLevel">LEVEL 1 / 3</small>
-                </div>
-
-                <button id="buyShield">BUY</button>
+        <div class="upgrade">
+            <div class="upgrade-icon">⚡</div>
+            <div class="upgrade-info">
+                <h3>EMP</h3>
+                <p>Stronger EMP radius</p>
+                <small id="empLevel">LEVEL 1/3</small>
             </div>
-
-
-            <div class="upgrade">
-                <div class="upgrade-icon">⚡</div>
-
-                <div class="upgrade-info">
-                    <h3>EMP</h3>
-                    <p>Destroy nearby enemies</p>
-                    <small id="empLevel">LEVEL 1 / 3</small>
-                </div>
-
-                <button id="buyEmp">BUY</button>
-            </div>
-
+            <button id="buyEmp">100 💎</button>
         </div>
 
     </div>
 
 </div>
 
+<!-- SETTINGS -->
+<div id="settingsPanel" class="screen">
 
-<!-- ================= SETTINGS ================= -->
+    <div class="panel-header">
+        <button class="back-btn" data-close="settingsPanel">←</button>
+        <h2>SETTINGS</h2>
+    </div>
 
-<div id="settingsScreen" class="screen panel-screen hidden">
+    <div class="settings-list">
 
-    <div class="panel">
-
-        <button class="close-button" data-close="settingsScreen">
-            ×
-        </button>
-
-        <h1>SETTINGS</h1>
-
-        <div class="setting-row">
+        <div class="setting">
             <div>
-                <strong>MUSIC</strong>
-                <small>Background music</small>
+                <h3>🎵 MUSIC</h3>
+                <p>Background music</p>
             </div>
-
-            <button id="musicToggle" class="toggle">
-                ON
-            </button>
+            <button id="musicToggle" class="toggle">ON</button>
         </div>
 
-
-        <div class="setting-row">
+        <div class="setting">
             <div>
-                <strong>SOUND</strong>
-                <small>Game effects</small>
+                <h3>🔊 SOUND</h3>
+                <p>Game sounds</p>
             </div>
-
-            <button id="soundToggle" class="toggle">
-                ON
-            </button>
+            <button id="soundToggle" class="toggle">ON</button>
         </div>
 
-
-        <div class="setting-row">
+        <div class="setting">
             <div>
-                <strong>VIBRATION</strong>
-                <small>Mobile feedback</small>
+                <h3>📳 VIBRATION</h3>
+                <p>Haptic feedback</p>
             </div>
-
-            <button id="vibrationToggle" class="toggle">
-                ON
-            </button>
+            <button id="vibrationToggle" class="toggle">ON</button>
         </div>
 
     </div>
 
 </div>
 
+<!-- FEEDBACK -->
+<div id="feedbackPanel" class="screen">
 
-<!-- ================= FEEDBACK ================= -->
+    <div class="panel-header">
+        <button class="back-btn" data-close="feedbackPanel">←</button>
+        <h2>FEEDBACK</h2>
+    </div>
 
-<div id="feedbackScreen" class="screen panel-screen hidden">
+    <div class="feedback-content">
 
-    <div class="panel feedback-panel">
+        <div class="feedback-icon">✉</div>
 
-        <button class="close-button" data-close="feedbackScreen">
-            ×
-        </button>
-
-        <h1>FEEDBACK</h1>
+        <h2>FOUND A BUG?</h2>
 
         <p>
-            Нашли ошибку или есть идея?
+            Напиши нам, если нашёл баг или хочешь
+            предложить новую функцию.
         </p>
 
-        <p>
-            Напишите разработчику:
-        </p>
-
-        <div class="phone">
-            +7 762 225-74-8
-        </div>
-
-        <a
-            class="main-button link-button"
-            href="tel:+77762225748"
-        >
-            CONTACT
+        <a href="https://t.me/NEON_DODGE"
+           target="_blank"
+           class="telegram-btn">
+            ✈ TELEGRAM
+            <strong>@NEON_DODGE</strong>
         </a>
 
     </div>
 
 </div>
 
+<!-- DAILY -->
+<div id="dailyPanel" class="screen">
 
-<!-- ================= DAILY ================= -->
+    <div class="panel-header">
+        <button class="back-btn" data-close="dailyPanel">←</button>
+        <h2>DAILY REWARD</h2>
+    </div>
 
-<div id="dailyScreen" class="screen panel-screen hidden">
-
-    <div class="panel daily-panel">
-
-        <button class="close-button" data-close="dailyScreen">
-            ×
-        </button>
-
+    <div class="daily-content">
         <div class="daily-icon">🎁</div>
 
-        <h1>DAILY REWARD</h1>
-
-        <p>Награда за возвращение в игру</p>
+        <h2>DAILY BONUS</h2>
+        <p>Заходи каждый день и получай кристаллы.</p>
 
         <div class="daily-reward">
-            +25 💎
+            💎 +25
         </div>
 
-        <button id="claimDaily" class="main-button">
+        <button id="claimDaily" class="main-btn">
             CLAIM
         </button>
 
+        <p id="dailyStatus"></p>
     </div>
 
 </div>
 
+<!-- GAME OVER -->
+<div id="gameOver" class="screen">
 
-<!-- ================= GAME OVER ================= -->
+    <div class="gameover-title">GAME OVER</div>
 
-<div id="gameOverScreen" class="screen hidden">
-
-    <div class="game-over-title">
-        SYSTEM FAILURE
-    </div>
-
-    <div class="result-score">
+    <div class="final-score">
         <span>SCORE</span>
         <strong id="finalScore">0</strong>
     </div>
 
-    <div class="result-best">
-        BEST <strong id="finalBest">0</strong>
+    <div class="reward">
+        💎 +<span id="rewardAmount">0</span>
     </div>
 
-    <div id="newBest" class="new-best hidden">
-        NEW BEST
-    </div>
-
-    <div class="reward-line">
-        +<span id="earnedCrystals">0</span> 💎
-    </div>
-
-    <button id="reviveButton" class="main-button revive-button">
-        🎬 REVIVE
+    <button id="reviveButton" class="main-btn revive">
+        ▶ REVIVE — WATCH AD
     </button>
 
-    <small id="reviveHint">
-        WATCH AD • ONE TIME PER RUN
-    </small>
-
-    <button id="restartButton" class="secondary-button big">
-        TRY AGAIN
+    <button id="restartButton" class="main-btn">
+        ↻ RESTART
     </button>
 
-    <button id="menuButton" class="text-button">
+    <button id="menuButton" class="main-btn">
         MENU
     </button>
 
 </div>
 
+<!-- PAUSE -->
+<div id="pauseScreen" class="screen">
 
-<!-- ================= PAUSE ================= -->
+    <div class="pause-title">PAUSED</div>
 
-<div id="pauseScreen" class="screen hidden">
-
-    <div class="pause-title">
-        PAUSED
-    </div>
-
-    <button id="resumeButton" class="main-button">
-        RESUME
+    <button id="resumeButton" class="main-btn">
+        ▶ RESUME
     </button>
 
-    <button id="pauseMenuButton" class="text-button">
+    <button id="pauseMenuButton" class="main-btn">
         MENU
     </button>
 
 </div>
 
-
-<!-- ================= WARNING ================= -->
-
-<div id="warning">
-    <span>⚠</span>
-    <strong>WARNING</strong>
-</div>
-
+<div id="toast"></div>
 
 <script src="game.js"></script>
 
