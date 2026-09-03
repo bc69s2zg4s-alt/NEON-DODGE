@@ -17,74 +17,377 @@
 
 <body>
 
-    <canvas id="gameCanvas"></canvas>
+<canvas id="gameCanvas"></canvas>
 
-    <!-- HUD -->
-    <div id="hud">
+<!-- ================= HUD ================= -->
 
-        <div class="hud-left">
-            <div class="label">SCORE</div>
-            <div id="score">0</div>
-        </div>
+<div id="hud" class="hidden">
 
-        <div class="hud-center">
-            <div class="label">MULTIPLIER</div>
-            <div id="multiplier">×1.00</div>
-        </div>
-
-        <div class="hud-right">
-            <div class="label">BEST</div>
-            <div id="best">0</div>
-        </div>
-
+    <div class="hud-block">
+        <span>SCORE</span>
+        <strong id="score">0</strong>
     </div>
 
-    <!-- START SCREEN -->
-    <div id="startScreen" class="screen">
+    <div class="hud-block center">
+        <span>COMBO</span>
+        <strong id="multiplier">×1.00</strong>
+    </div>
 
-        <div class="logo">
-            NEON
-            <span>DODGE</span>
+    <div class="hud-block right">
+        <span>BEST</span>
+        <strong id="best">0</strong>
+    </div>
+
+    <button id="pauseButton" class="hud-button">Ⅱ</button>
+
+    <div id="healthHud"></div>
+
+    <div id="weaponHud">
+        <div class="ability-title">SHOT</div>
+        <div class="cooldown-bar">
+            <div id="weaponCooldown"></div>
         </div>
+    </div>
 
-        <div class="subtitle">
-            SURVIVE THE VOID
-        </div>
-
-        <button id="startButton">
-            START
+    <div id="abilityHud">
+        <button id="shieldButton" class="ability-button">
+            🛡
         </button>
 
-        <div class="hint">
-            MOVE TO SURVIVE
-        </div>
-
+        <button id="empButton" class="ability-button">
+            ⚡
+        </button>
     </div>
 
-    <!-- GAME OVER -->
-    <div id="gameOverScreen" class="screen hidden">
+    <div id="crystalHud">
+        💎 <span id="gameCrystals">0</span>
+    </div>
 
-        <div class="game-over-title">
-            SYSTEM FAILURE
-        </div>
+</div>
 
-        <div class="final-score">
-            <div class="label">SCORE</div>
-            <div id="finalScore">0</div>
-        </div>
 
-        <div class="best-score">
-            <div class="label">BEST</div>
-            <div id="finalBest">0</div>
-        </div>
+<!-- ================= MAIN MENU ================= -->
 
-        <button id="restartButton">
-            TRY AGAIN
+<div id="menuScreen" class="screen">
+
+    <div class="logo">
+        NEON
+        <span>DODGE</span>
+    </div>
+
+    <div class="subtitle">
+        SURVIVE THE VOID
+    </div>
+
+    <div class="currency">
+        💎 <span id="menuCrystals">0</span>
+    </div>
+
+    <button id="playButton" class="main-button">
+        PLAY
+    </button>
+
+    <div class="menu-buttons">
+
+        <button id="shopButton" class="secondary-button">
+            🛒 SHOP
+        </button>
+
+        <button id="settingsButton" class="secondary-button">
+            ⚙ SETTINGS
+        </button>
+
+        <button id="feedbackButton" class="secondary-button">
+            💬 FEEDBACK
         </button>
 
     </div>
 
-    <script src="game.js"></script>
+    <div id="dailyButton" class="daily">
+        🎁 DAILY REWARD
+    </div>
+
+</div>
+
+
+<!-- ================= SHOP ================= -->
+
+<div id="shopScreen" class="screen panel-screen hidden">
+
+    <div class="panel">
+
+        <button class="close-button" data-close="shopScreen">
+            ×
+        </button>
+
+        <h1>SHOP</h1>
+
+        <div class="shop-currency">
+            💎 <span id="shopCrystals">0</span>
+        </div>
+
+        <div class="shop-list">
+
+            <div class="upgrade">
+                <div class="upgrade-icon">❤️</div>
+
+                <div class="upgrade-info">
+                    <h3>EXTRA LIFE</h3>
+                    <p>+1 maximum life</p>
+                    <small id="lifeLevel">LEVEL 1 / 3</small>
+                </div>
+
+                <button id="buyLife">BUY</button>
+            </div>
+
+
+            <div class="upgrade">
+                <div class="upgrade-icon">🔫</div>
+
+                <div class="upgrade-info">
+                    <h3>ENERGY SHOT</h3>
+                    <p>Destroy incoming enemies</p>
+                    <small id="weaponLevel">LOCKED</small>
+                </div>
+
+                <button id="buyWeapon">BUY</button>
+            </div>
+
+
+            <div class="upgrade">
+                <div class="upgrade-icon">💥</div>
+
+                <div class="upgrade-info">
+                    <h3>SHOT POWER</h3>
+                    <p>Increase projectile damage</p>
+                    <small id="damageLevel">LEVEL 1 / 3</small>
+                </div>
+
+                <button id="buyDamage">BUY</button>
+            </div>
+
+
+            <div class="upgrade">
+                <div class="upgrade-icon">🛡</div>
+
+                <div class="upgrade-info">
+                    <h3>SHIELD</h3>
+                    <p>Temporary protection</p>
+                    <small id="shieldLevel">LEVEL 1 / 3</small>
+                </div>
+
+                <button id="buyShield">BUY</button>
+            </div>
+
+
+            <div class="upgrade">
+                <div class="upgrade-icon">⚡</div>
+
+                <div class="upgrade-info">
+                    <h3>EMP</h3>
+                    <p>Destroy nearby enemies</p>
+                    <small id="empLevel">LEVEL 1 / 3</small>
+                </div>
+
+                <button id="buyEmp">BUY</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= SETTINGS ================= -->
+
+<div id="settingsScreen" class="screen panel-screen hidden">
+
+    <div class="panel">
+
+        <button class="close-button" data-close="settingsScreen">
+            ×
+        </button>
+
+        <h1>SETTINGS</h1>
+
+        <div class="setting-row">
+            <div>
+                <strong>MUSIC</strong>
+                <small>Background music</small>
+            </div>
+
+            <button id="musicToggle" class="toggle">
+                ON
+            </button>
+        </div>
+
+
+        <div class="setting-row">
+            <div>
+                <strong>SOUND</strong>
+                <small>Game effects</small>
+            </div>
+
+            <button id="soundToggle" class="toggle">
+                ON
+            </button>
+        </div>
+
+
+        <div class="setting-row">
+            <div>
+                <strong>VIBRATION</strong>
+                <small>Mobile feedback</small>
+            </div>
+
+            <button id="vibrationToggle" class="toggle">
+                ON
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= FEEDBACK ================= -->
+
+<div id="feedbackScreen" class="screen panel-screen hidden">
+
+    <div class="panel feedback-panel">
+
+        <button class="close-button" data-close="feedbackScreen">
+            ×
+        </button>
+
+        <h1>FEEDBACK</h1>
+
+        <p>
+            Нашли ошибку или есть идея?
+        </p>
+
+        <p>
+            Напишите разработчику:
+        </p>
+
+        <div class="phone">
+            +7 762 225-74-8
+        </div>
+
+        <a
+            class="main-button link-button"
+            href="tel:+77762225748"
+        >
+            CONTACT
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- ================= DAILY ================= -->
+
+<div id="dailyScreen" class="screen panel-screen hidden">
+
+    <div class="panel daily-panel">
+
+        <button class="close-button" data-close="dailyScreen">
+            ×
+        </button>
+
+        <div class="daily-icon">🎁</div>
+
+        <h1>DAILY REWARD</h1>
+
+        <p>Награда за возвращение в игру</p>
+
+        <div class="daily-reward">
+            +25 💎
+        </div>
+
+        <button id="claimDaily" class="main-button">
+            CLAIM
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ================= GAME OVER ================= -->
+
+<div id="gameOverScreen" class="screen hidden">
+
+    <div class="game-over-title">
+        SYSTEM FAILURE
+    </div>
+
+    <div class="result-score">
+        <span>SCORE</span>
+        <strong id="finalScore">0</strong>
+    </div>
+
+    <div class="result-best">
+        BEST <strong id="finalBest">0</strong>
+    </div>
+
+    <div id="newBest" class="new-best hidden">
+        NEW BEST
+    </div>
+
+    <div class="reward-line">
+        +<span id="earnedCrystals">0</span> 💎
+    </div>
+
+    <button id="reviveButton" class="main-button revive-button">
+        🎬 REVIVE
+    </button>
+
+    <small id="reviveHint">
+        WATCH AD • ONE TIME PER RUN
+    </small>
+
+    <button id="restartButton" class="secondary-button big">
+        TRY AGAIN
+    </button>
+
+    <button id="menuButton" class="text-button">
+        MENU
+    </button>
+
+</div>
+
+
+<!-- ================= PAUSE ================= -->
+
+<div id="pauseScreen" class="screen hidden">
+
+    <div class="pause-title">
+        PAUSED
+    </div>
+
+    <button id="resumeButton" class="main-button">
+        RESUME
+    </button>
+
+    <button id="pauseMenuButton" class="text-button">
+        MENU
+    </button>
+
+</div>
+
+
+<!-- ================= WARNING ================= -->
+
+<div id="warning">
+    <span>⚠</span>
+    <strong>WARNING</strong>
+</div>
+
+
+<script src="game.js"></script>
 
 </body>
 </html>
