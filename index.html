@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <meta name="theme-color" content="#05060b">
+
+    <title>NEON DODGE</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+
+        <div class="hud-left">
+            <div class="label">SCORE</div>
+            <div id="score">0</div>
+        </div>
+
+        <div class="hud-center">
+            <div class="label">MULTIPLIER</div>
+            <div id="multiplier">×1.00</div>
+        </div>
+
+        <div class="hud-right">
+            <div class="label">BEST</div>
+            <div id="best">0</div>
+        </div>
+
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="startScreen" class="screen">
+
+        <div class="logo">
+            NEON
+            <span>DODGE</span>
+        </div>
+
+        <div class="subtitle">
+            SURVIVE THE VOID
+        </div>
+
+        <button id="startButton">
+            START
+        </button>
+
+        <div class="hint">
+            MOVE TO SURVIVE
+        </div>
+
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="gameOverScreen" class="screen hidden">
+
+        <div class="game-over-title">
+            SYSTEM FAILURE
+        </div>
+
+        <div class="final-score">
+            <div class="label">SCORE</div>
+            <div id="finalScore">0</div>
+        </div>
+
+        <div class="best-score">
+            <div class="label">BEST</div>
+            <div id="finalBest">0</div>
+        </div>
+
+        <button id="restartButton">
+            TRY AGAIN
+        </button>
+
+    </div>
+
+    <script src="game.js"></script>
+
+</body>
+</html>
