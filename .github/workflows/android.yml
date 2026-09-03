@@ -14,11 +14,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
       - name: Prepare web files
         run: |
-          mkdir -p www
+          mkdir www
           cp index.html www/
           cp style.css www/
           cp game.js www/
@@ -27,124 +27,10 @@ jobs:
       - name: Create Capacitor project
         run: |
           npm init -y
-
-          npm install \
-            @capacitor/core \
-            @capacitor/cli \
-            @capacitor/android \
-            @capacitor/app
-
-          npx cap init \
-            "NEON DODGE" \
-            "com.fxd.neondodge" \
-            --web-dir=www
-
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
           npx cap add android
           npx cap copy android
-
-      - name: Configure Android Deep Link
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          manifest = Path(
-              "android/app/src/main/AndroidManifest.xml"
-          )
-
-          text = manifest.read_text()
-
-          # Ищем MainActivity
-          pattern = re.compile(
-              r'(<activity\b[^>]*android:name="[^"]*MainActivity"[^>]*)(>)',
-              re.MULTILINE
-          )
-
-          match = pattern.search(text)
-
-          if not match:
-              raise SystemExit(
-                  "ERROR: MainActivity not found"
-              )
-
-          activity_start = match.start()
-
-          activity_end = text.find(
-              "</activity>",
-              match.end()
-          )
-
-          if activity_end == -1:
-              raise SystemExit(
-                  "ERROR: MainActivity closing tag not found"
-              )
-
-          activity_block = text[
-              activity_start:activity_end
-          ]
-
-          # singleTask нужен для корректного appUrlOpen
-          if 'android:launchMode="singleTask"' not in activity_block:
-
-              insert_pos = match.end()
-
-              text = (
-                  text[:insert_pos]
-                  + '\n'
-                  + '            android:launchMode="singleTask"'
-                  + text[insert_pos:]
-              )
-
-              # заново ищем MainActivity
-              match = pattern.search(text)
-
-              activity_start = match.start()
-
-              activity_end = text.find(
-                  "</activity>",
-                  match.end()
-              )
-
-              activity_block = text[
-                  activity_start:activity_end
-              ]
-
-          # Deep Link
-          deep_link = '''
-              <intent-filter>
-                  <action android:name="android.intent.action.VIEW" />
-                  <category android:name="android.intent.category.DEFAULT" />
-                  <category android:name="android.intent.category.BROWSABLE" />
-
-                  <data
-                      android:scheme="neondodge"
-                      android:host="auth" />
-              </intent-filter>
-          '''
-
-          if 'android:scheme="neondodge"' not in activity_block:
-
-              text = (
-                  text[:activity_end]
-                  + deep_link
-                  + "\n        "
-                  + text[activity_end:]
-              )
-
-          manifest.write_text(text)
-
-          print("")
-          print("==========================================")
-          print(" NEON DODGE DEEP LINK")
-          print("==========================================")
-          print("Scheme: neondodge")
-          print("Host: auth")
-          print("URL: neondodge://auth")
-          print("Launch mode: singleTask")
-          print("==========================================")
-          print("")
-
-          PY
 
       - name: Fix Kotlin dependencies
         run: |
@@ -159,7 +45,6 @@ jobs:
                   }
               }
           }
-
           EOF
 
       - name: Setup Java
@@ -171,7 +56,6 @@ jobs:
       - name: Clean Android build
         run: |
           cd android
-          chmod +x gradlew
           ./gradlew clean
 
       - name: Build APK
