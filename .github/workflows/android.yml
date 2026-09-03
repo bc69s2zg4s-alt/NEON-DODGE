@@ -14,11 +14,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Prepare web files
         run: |
-          mkdir www
+          mkdir -p www
           cp index.html www/
           cp style.css www/
           cp game.js www/
@@ -27,10 +27,64 @@ jobs:
       - name: Create Capacitor project
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+
+          npm install \
+            @capacitor/core@8.0.0 \
+            @capacitor/cli@8.0.0 \
+            @capacitor/android@8.0.0 \
+            @capacitor-community/admob@8.1.0
+
           npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
+
           npx cap add android
-          npx cap copy android
+
+      - name: Configure AdMob
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          text = manifest.read_text()
+
+          meta = '''
+              <meta-data
+                  android:name="com.google.android.gms.ads.APPLICATION_ID"
+                  android:value="@string/admob_app_id" />
+          '''
+
+          if "com.google.android.gms.ads.APPLICATION_ID" not in text:
+              text = text.replace(
+                  "<application",
+                  "<application\n" + meta,
+                  1
+              )
+
+          manifest.write_text(text)
+
+          strings = Path(
+              "android/app/src/main/res/values/strings.xml"
+          )
+
+          text = strings.read_text()
+
+          app_id = (
+              '    <string name="admob_app_id">'
+              'ca-app-pub-7914086624525579~8190565290'
+              '</string>'
+          )
+
+          if "name=\"admob_app_id\"" not in text:
+              text = text.replace(
+                  "</resources>",
+                  app_id + "\n</resources>"
+              )
+
+          strings.write_text(text)
+          PY
+
+      - name: Sync Capacitor
+        run: |
+          npx cap sync android
 
       - name: Fix Kotlin dependencies
         run: |
@@ -40,7 +94,7 @@ jobs:
               configurations.configureEach {
                   resolutionStrategy.eachDependency { details ->
                       if (details.requested.group == "org.jetbrains.kotlin") {
-                          details.useVersion("1.8.22")
+                          details.useVersion("2.1.20")
                       }
                   }
               }
@@ -56,6 +110,7 @@ jobs:
       - name: Clean Android build
         run: |
           cd android
+          chmod +x gradlew
           ./gradlew clean
 
       - name: Build APK
