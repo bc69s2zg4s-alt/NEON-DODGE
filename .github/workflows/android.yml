@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -43,23 +44,84 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
-          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          # ==========================================
+          # AndroidManifest.xml
+          # ==========================================
+
+          manifest = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+
           text = manifest.read_text()
 
-          meta = '''
-              <meta-data
-                  android:name="com.google.android.gms.ads.APPLICATION_ID"
-                  android:value="@string/admob_app_id" />
-          '''
+          admob_marker = (
+              "com.google.android.gms.ads.APPLICATION_ID"
+          )
 
-          if "com.google.android.gms.ads.APPLICATION_ID" not in text:
-              text = text.replace(
-                  "<application",
-                  "<application\n" + meta,
-                  1
+          # Удаляем старую запись AdMob, если она уже есть
+          while admob_marker in text:
+
+              start = text.rfind(
+                  "<meta-data",
+                  0,
+                  text.find(admob_marker) + 1
               )
 
+              end = text.find(
+                  "/>",
+                  text.find(admob_marker)
+              )
+
+              if start == -1 or end == -1:
+                  raise Exception(
+                      "Could not remove old AdMob metadata"
+                  )
+
+              end += 2
+
+              text = (
+                  text[:start]
+                  + text[end:]
+              )
+
+          # Находим application
+          application_start = text.find("<application")
+
+          if application_start == -1:
+              raise Exception(
+                  "Could not find <application>"
+              )
+
+          application_end = text.find(
+              ">",
+              application_start
+          )
+
+          if application_end == -1:
+              raise Exception(
+                  "Could not find end of <application>"
+              )
+
+          # Правильная запись AdMob
+          admob_meta = """
+          <meta-data
+              android:name="com.google.android.gms.ads.APPLICATION_ID"
+              android:value="@string/admob_app_id" />
+          """
+
+          insert_position = application_end + 1
+
+          text = (
+              text[:insert_position]
+              + admob_meta
+              + text[insert_position:]
+          )
+
           manifest.write_text(text)
+
+          # ==========================================
+          # strings.xml
+          # ==========================================
 
           strings = Path(
               "android/app/src/main/res/values/strings.xml"
@@ -73,13 +135,31 @@ jobs:
               '</string>'
           )
 
-          if "name=\"admob_app_id\"" not in text:
-              text = text.replace(
-                  "</resources>",
-                  app_id + "\n</resources>"
-              )
+          # Если старый ID уже есть — удаляем строку
+          lines = text.splitlines()
+
+          lines = [
+              line
+              for line in lines
+              if 'name="admob_app_id"' not in line
+          ]
+
+          text = "\n".join(lines)
+
+          if not text.endswith("\n"):
+              text += "\n"
+
+          text = text.replace(
+              "</resources>",
+              app_id + "\n</resources>"
+          )
 
           strings.write_text(text)
+
+          print("====================================")
+          print("AdMob configuration completed")
+          print("App ID configured successfully")
+          print("====================================")
           PY
 
       - name: Sync Capacitor
