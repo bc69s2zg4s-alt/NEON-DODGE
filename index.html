@@ -2,384 +2,705 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <meta name="theme-color" content="#05060b">
-    <title>NEON DODGE</title>
-
-    <link rel="stylesheet" href="style.css">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#05060b">
+<title>NEON DODGE</title>
+<link rel="stylesheet" href="style.css">
+<style>
+    /* GOOGLE AUTH */
+    .auth-box {
+        width: min(90%, 360px);
+        margin: 0 auto 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .google-login-btn {
+        width: 100%;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 12px;
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition:
+            transform 0.15s ease,
+            background 0.15s ease,
+            border-color 0.15s ease;
+    }
+    .google-login-btn:hover {
+        background: rgba(255,255,255,0.14);
+        border-color: rgba(255,255,255,0.35);
+    }
+    .google-login-btn:active {
+        transform: scale(0.97);
+    }
+    .google-login-btn:disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+    .google-icon {
+        width: 25px;
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #fff;
+        color: #4285f4;
+        font-family: Arial, sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+    }
+    .auth-status {
+        min-height: 16px;
+        color: rgba(255,255,255,0.7);
+        font-size: 11px;
+        text-align: center;
+        word-break: break-word;
+    }
+    .logout-btn {
+        min-height: 38px;
+        padding: 0 18px;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px;
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.75);
+        font-family: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .logout-btn:active {
+        transform: scale(0.97);
+    }
+</style>
 </head>
-
 <body>
-
-<canvas id="gameCanvas"></canvas>
-
-<!-- HUD -->
+<!-- =========================
+     HUD
+========================= -->
 <div id="hud">
-
-    <div class="hud-top">
-        <div>
-            <span class="hud-label">SCORE</span>
-            <strong id="score">0</strong>
-        </div>
-
-        <div class="hud-center">
-            <span class="hud-label">MULTIPLIER</span>
-            <strong id="multiplier">x1</strong>
-        </div>
-
-        <div>
-            <span class="hud-label">BEST</span>
-            <strong id="best">0</strong>
-        </div>
-
-        <button id="pauseButton" class="mini-btn">Ⅱ</button>
+<div class="hud-top">
+    <div>
+        <span class="hud-label">SCORE</span>
+        <strong id="score">0</strong>
     </div>
-
-    <div class="hud-bottom">
-
-        <div class="stat-box">
-            <span>❤️</span>
-            <strong id="health">1</strong>
-        </div>
-
-        <div class="stat-box">
-            <span>💎</span>
-            <strong id="crystals">0</strong>
-        </div>
-
-        <button id="shieldButton" class="ability-btn">
-            🛡️
-            <small>SHIELD</small>
-        </button>
-
-        <button id="empButton" class="ability-btn">
-            ⚡
-            <small>EMP</small>
-        </button>
-
+    <div class="hud-center">
+        <span class="hud-label">MULTIPLIER</span>
+        <strong id="multiplier">x1</strong>
     </div>
-
+    <div>
+        <span class="hud-label">BEST</span>
+        <strong id="best">0</strong>
+    </div>
+    <button id="pauseButton" class="mini-btn">
+        Ⅱ
+    </button>
 </div>
-
-<!-- Buffs -->
+<div class="hud-bottom">
+    <div class="stat-box">
+        <span>❤️</span>
+        <strong id="health">1</strong>
+    </div>
+    <div class="stat-box">
+        <span>💎</span>
+        <strong id="crystals">0</strong>
+    </div>
+    <button id="shieldButton" class="ability-btn">
+        🛡️
+        <small>SHIELD</small>
+    </button>
+    <button id="empButton" class="ability-btn">
+        ⚡
+        <small>EMP</small>
+    </button>
+</div>
+</div>
+<!-- BUFFS -->
 <div id="buffContainer"></div>
-
-<!-- Event warning -->
+<!-- EVENT WARNING -->
 <div id="eventWarning">
-    <div id="eventWarningTitle">WARNING</div>
-    <div id="eventWarningText"></div>
+<div id="eventWarningTitle">
+    WARNING
 </div>
-
-<!-- MENU -->
+<div id="eventWarningText"></div>
+</div>
+<!-- =========================
+     MENU
+========================= -->
 <div id="menu" class="screen active">
-
-    <div class="logo">
-        <div>NEON</div>
-        <span>DODGE</span>
-    </div>
-
-    <div class="menu-subtitle">
-        SURVIVE THE NEON HELL
-    </div>
-
-    <div class="menu-buttons">
-
-        <button id="playButton" class="main-btn">
-            <span>▶</span> PLAY
-        </button>
-
-        <button id="shopButton" class="main-btn">
-            <span>◆</span> SHOP
-        </button>
-
-        <button id="settingsButton" class="main-btn">
-            <span>⚙</span> SETTINGS
-        </button>
-
-        <button id="feedbackButton" class="main-btn">
-            <span>✉</span> FEEDBACK
-        </button>
-
-        <button id="dailyButton" class="main-btn">
-            <span>🎁</span> DAILY REWARD
-        </button>
-
-    </div>
-
-    <div class="menu-crystals">
-        💎 <span id="menuCrystals">0</span>
-    </div>
-
+<div class="logo">
+    <div>NEON</div>
+    <span>DODGE</span>
 </div>
-
-<!-- SHOP -->
-<div id="shopPanel" class="screen">
-
-    <div class="panel-header">
-        <button class="back-btn" data-close="shopPanel">←</button>
-        <h2>UPGRADES</h2>
-        <div class="panel-currency">
-            💎 <span id="shopCrystals">0</span>
-        </div>
-    </div>
-
-    <div class="shop-list">
-
-        <div class="upgrade">
-
-            <div class="upgrade-icon">❤️</div>
-
-            <div class="upgrade-info">
-                <h3>EXTRA LIFE</h3>
-                <p>+1 maximum life</p>
-                <small id="lifeLevel">LEVEL 1/3</small>
-            </div>
-
-            <button id="buyLife">80 💎</button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgrade-icon">🔫</div>
-
-            <div class="upgrade-info">
-                <h3>NEON WEAPON</h3>
-                <p>Unlock automatic shooting</p>
-                <small id="weaponLevel">LOCKED</small>
-            </div>
-
-            <button id="buyWeapon">150 💎</button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgrade-icon">💥</div>
-
-            <div class="upgrade-info">
-                <h3>WEAPON DAMAGE</h3>
-                <p>More damage per shot</p>
-                <small id="damageLevel">LEVEL 1/3</small>
-            </div>
-
-            <button id="buyDamage">100 💎</button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgrade-icon">🛡️</div>
-
-            <div class="upgrade-info">
-                <h3>SHIELD</h3>
-                <p>Better shield cooldown</p>
-                <small id="shieldLevel">LEVEL 1/3</small>
-            </div>
-
-            <button id="buyShield">90 💎</button>
-
-        </div>
-
-        <div class="upgrade">
-
-            <div class="upgrade-icon">⚡</div>
-
-            <div class="upgrade-info">
-                <h3>EMP</h3>
-                <p>Stronger EMP radius</p>
-                <small id="empLevel">LEVEL 1/3</small>
-            </div>
-
-            <button id="buyEmp">100 💎</button>
-
-        </div>
-
-    </div>
-
+<div class="menu-subtitle">
+    SURVIVE THE NEON HELL
 </div>
-
-<!-- SETTINGS -->
-<div id="settingsPanel" class="screen">
-
-    <div class="panel-header">
-        <button class="back-btn" data-close="settingsPanel">←</button>
-        <h2>SETTINGS</h2>
-    </div>
-
-    <div class="settings-list">
-
-        <div class="setting">
-
-            <div>
-                <h3>🎵 MUSIC</h3>
-                <p>Background music</p>
-            </div>
-
-            <button id="musicToggle" class="toggle">
-                ON
-            </button>
-
-        </div>
-
-        <div class="setting">
-
-            <div>
-                <h3>🔊 SOUND</h3>
-                <p>Game sounds</p>
-            </div>
-
-            <button id="soundToggle" class="toggle">
-                ON
-            </button>
-
-        </div>
-
-        <div class="setting">
-
-            <div>
-                <h3>📳 VIBRATION</h3>
-                <p>Haptic feedback</p>
-            </div>
-
-            <button id="vibrationToggle" class="toggle">
-                ON
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- FEEDBACK -->
-<div id="feedbackPanel" class="screen">
-
-    <div class="panel-header">
-        <button class="back-btn" data-close="feedbackPanel">←</button>
-        <h2>FEEDBACK</h2>
-    </div>
-
-    <div class="feedback-content">
-
-        <div class="feedback-icon">✉</div>
-
-        <h2>FOUND A BUG?</h2>
-
-        <p>
-            Напиши нам, если нашёл баг или хочешь
-            предложить новую функцию.
-        </p>
-
-        <a href="https://t.me/NEON_DODGE"
-           target="_blank"
-           class="telegram-btn">
-
-            ✈ TELEGRAM
-            <strong>@NEON_DODGE</strong>
-
-        </a>
-
-    </div>
-
-</div>
-
-<!-- DAILY -->
-<div id="dailyPanel" class="screen">
-
-    <div class="panel-header">
-        <button class="back-btn" data-close="dailyPanel">←</button>
-        <h2>DAILY REWARD</h2>
-    </div>
-
-    <div class="daily-content">
-
-        <div class="daily-icon">🎁</div>
-
-        <h2>DAILY BONUS</h2>
-
-        <p>
-            Заходи каждый день и получай кристаллы.
-        </p>
-
-        <div class="daily-reward">
-            💎 +25
-        </div>
-
-        <button id="claimDaily" class="main-btn">
-            CLAIM
-        </button>
-
-        <p id="dailyStatus"></p>
-
-    </div>
-
-</div>
-
-<!-- GAME OVER -->
-<div id="gameOver" class="screen">
-
-    <div class="gameover-title">
-        GAME OVER
-    </div>
-
-    <div class="final-score">
-
-        <span>SCORE</span>
-
-        <strong id="finalScore">
-            0
-        </strong>
-
-    </div>
-
-    <div class="reward">
-
-        💎 +
-        <span id="rewardAmount">
-            0
+<!-- GOOGLE LOGIN -->
+<div class="auth-box">
+    <button
+        id="googleLoginButton"
+        class="google-login-btn">
+        <span class="google-icon">
+            G
         </span>
-
+        <span>
+            CONTINUE WITH GOOGLE
+        </span>
+    </button>
+    <div
+        id="authStatus"
+        class="auth-status">
     </div>
-
-    <button id="reviveButton" class="main-btn revive">
-        ▶ REVIVE — WATCH AD
+    <button
+        id="logoutButton"
+        class="logout-btn"
+        style="display:none;">
+        LOG OUT
     </button>
-
-    <button id="restartButton" class="main-btn">
-        ↻ RESTART
-    </button>
-
-    <button id="menuButton" class="main-btn">
-        MENU
-    </button>
-
 </div>
-
-<!-- PAUSE -->
+<div class="menu-buttons">
+    <button id="playButton" class="main-btn">
+        <span>▶</span> PLAY
+    </button>
+    <button id="shopButton" class="main-btn">
+        <span>◆</span> SHOP
+    </button>
+    <button id="settingsButton" class="main-btn">
+        <span>⚙</span> SETTINGS
+    </button>
+    <button id="feedbackButton" class="main-btn">
+        <span>✉</span> FEEDBACK
+    </button>
+    <button id="dailyButton" class="main-btn">
+        <span>🎁</span> DAILY REWARD
+    </button>
+</div>
+<div class="menu-crystals">
+    💎
+    <span id="menuCrystals">0</span>
+</div>
+</div>
+<!-- =========================
+     SHOP
+========================= -->
+<div id="shopPanel" class="screen">
+<div class="panel-header">
+    <button
+        class="back-btn"
+        data-close="shopPanel">
+        ←
+    </button>
+    <h2>UPGRADES</h2>
+    <div class="panel-currency">
+        💎
+        <span id="shopCrystals">0</span>
+    </div>
+</div>
+<div class="shop-list">
+    <div class="upgrade">
+        <div class="upgrade-icon">
+            ❤️
+        </div>
+        <div class="upgrade-info">
+            <h3>
+                EXTRA LIFE
+            </h3>
+            <p>
+                +1 maximum life
+            </p>
+            <small id="lifeLevel">
+                LEVEL 1/3
+            </small>
+        </div>
+        <button id="buyLife">
+            80 💎
+        </button>
+    </div>
+    <div class="upgrade">
+        <div class="upgrade-icon">
+            🔫
+        </div>
+        <div class="upgrade-info">
+            <h3>
+                NEON WEAPON
+            </h3>
+            <p>
+                Unlock automatic shooting
+            </p>
+            <small id="weaponLevel">
+                LOCKED
+            </small>
+        </div>
+        <button id="buyWeapon">
+            150 💎
+        </button>
+    </div>
+    <div class="upgrade">
+        <div class="upgrade-icon">
+            💥
+        </div>
+        <div class="upgrade-info">
+            <h3>
+                WEAPON DAMAGE
+            </h3>
+            <p>
+                More damage per shot
+            </p>
+            <small id="damageLevel">
+                LEVEL 1/3
+            </small>
+        </div>
+        <button id="buyDamage">
+            100 💎
+        </button>
+    </div>
+    <div class="upgrade">
+        <div class="upgrade-icon">
+            🛡️
+        </div>
+        <div class="upgrade-info">
+            <h3>
+                SHIELD
+            </h3>
+            <p>
+                Better shield cooldown
+            </p>
+            <small id="shieldLevel">
+                LEVEL 1/3
+            </small>
+        </div>
+        <button id="buyShield">
+            90 💎
+        </button>
+    </div>
+    <div class="upgrade">
+        <div class="upgrade-icon">
+            ⚡
+        </div>
+        <div class="upgrade-info">
+            <h3>
+                EMP
+            </h3>
+            <p>
+                Stronger EMP radius
+            </p>
+            <small id="empLevel">
+                LEVEL 1/3
+            </small>
+        </div>
+        <button id="buyEmp">
+            100 💎
+        </button>
+    </div>
+</div>
+</div>
+<!-- =========================
+     SETTINGS
+========================= -->
+<div id="settingsPanel" class="screen">
+<div class="panel-header">
+    <button
+        class="back-btn"
+        data-close="settingsPanel">
+        ←
+    </button>
+    <h2>
+        SETTINGS
+    </h2>
+</div>
+<div class="settings-list">
+    <div class="setting">
+        <div>
+            <h3>
+                🎵 MUSIC
+            </h3>
+            <p>
+                Background music
+            </p>
+        </div>
+        <button
+            id="musicToggle"
+            class="toggle">
+            ON
+        </button>
+    </div>
+    <div class="setting">
+        <div>
+            <h3>
+                🔊 SOUND
+            </h3>
+            <p>
+                Game sounds
+            </p>
+        </div>
+        <button
+            id="soundToggle"
+            class="toggle">
+            ON
+        </button>
+    </div>
+    <div class="setting">
+        <div>
+            <h3>
+                📳 VIBRATION
+            </h3>
+            <p>
+                Haptic feedback
+            </p>
+        </div>
+        <button
+            id="vibrationToggle"
+            class="toggle">
+            ON
+        </button>
+    </div>
+</div>
+</div>
+<!-- =========================
+     FEEDBACK
+========================= -->
+<div id="feedbackPanel" class="screen">
+<div class="panel-header">
+    <button
+        class="back-btn"
+        data-close="feedbackPanel">
+        ←
+    </button>
+    <h2>
+        FEEDBACK
+    </h2>
+</div>
+<div class="feedback-content">
+    <div class="feedback-icon">
+        ✉
+    </div>
+    <h2>
+        FOUND A BUG?
+    </h2>
+    <p>
+        Напиши нам, если нашёл баг или хочешь
+        предложить новую функцию.
+    </p>
+    <a
+        href="https://t.me/NEON_DODGE"
+        target="_blank"
+        class="telegram-btn">
+        ✈ TELEGRAM
+        <strong>
+            @NEON_DODGE
+        </strong>
+    </a>
+</div>
+</div>
+<!-- =========================
+     DAILY
+========================= -->
+<div id="dailyPanel" class="screen">
+<div class="panel-header">
+    <button
+        class="back-btn"
+        data-close="dailyPanel">
+        ←
+    </button>
+    <h2>
+        DAILY REWARD
+    </h2>
+</div>
+<div class="daily-content">
+    <div class="daily-icon">
+        🎁
+    </div>
+    <h2>
+        DAILY BONUS
+    </h2>
+    <p>
+        Заходи каждый день и получай кристаллы.
+    </p>
+    <div class="daily-reward">
+        💎 +25
+    </div>
+    <button
+        id="claimDaily"
+        class="main-btn">
+        CLAIM
+    </button>
+    <p id="dailyStatus"></p>
+</div>
+</div>
+<!-- =========================
+     GAME OVER
+========================= -->
+<div id="gameOver" class="screen">
+<div class="gameover-title">
+    GAME OVER
+</div>
+<div class="final-score">
+    <span>
+        SCORE
+    </span>
+    <strong id="finalScore">
+        0
+    </strong>
+</div>
+<div class="reward">
+    💎 +
+    <span id="rewardAmount">
+        0
+    </span>
+</div>
+<button
+    id="reviveButton"
+    class="main-btn revive">
+    ▶ REVIVE — WATCH AD
+</button>
+<button
+    id="restartButton"
+    class="main-btn">
+    ↻ RESTART
+</button>
+<button
+    id="menuButton"
+    class="main-btn">
+    MENU
+</button>
+</div>
+<!-- =========================
+     PAUSE
+========================= -->
 <div id="pauseScreen" class="screen">
-
-    <div class="pause-title">
-        PAUSED
-    </div>
-
-    <button id="resumeButton" class="main-btn">
-        ▶ RESUME
-    </button>
-
-    <button id="pauseMenuButton" class="main-btn">
-        MENU
-    </button>
-
+<div class="pause-title">
+    PAUSED
 </div>
-
+<button
+    id="resumeButton"
+    class="main-btn">
+    ▶ RESUME
+</button>
+<button
+    id="pauseMenuButton"
+    class="main-btn">
+    MENU
+</button>
+</div>
 <div id="toast"></div>
-
-<!-- SCRIPTS -->
+<!-- =========================
+     SUPABASE
+========================= -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    /* =========================================
+       SUPABASE CONFIG
+    ========================================= */
+    const SUPABASE_URL =
+        "https://vvnkocavonlstytnnfjw.supabase.co";
+    const SUPABASE_KEY =
+        "sb_publishable_OIiVFoWQleCBtBbVLo0pJQ_6SlbEDU-";
+    const supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+    /* =========================================
+       AUTH ELEMENTS
+    ========================================= */
+    const googleLoginButton =
+        document.getElementById(
+            "googleLoginButton"
+        );
+    const logoutButton =
+        document.getElementById(
+            "logoutButton"
+        );
+    const authStatus =
+        document.getElementById(
+            "authStatus"
+        );
+    /* =========================================
+       STATUS
+    ========================================= */
+    function setAuthStatus(text) {
+        if (authStatus) {
+            authStatus.textContent =
+                text || "";
+        }
+    }
+    /* =========================================
+       GOOGLE LOGIN
+    ========================================= */
+    async function loginWithGoogle() {
+        try {
+            setAuthStatus(
+                "CONNECTING..."
+            );
+            googleLoginButton.disabled =
+                true;
+            const {
+                error
+            } =
+                await supabaseClient.auth
+                    .signInWithOAuth({
+                        provider: "google",
+                        options: {
+                            redirectTo:
+                                window.location.origin
+                        }
+                    });
+            if (error) {
+                throw error;
+            }
+        }
+        catch (error) {
+            console.error(
+                "Google login error:",
+                error
+            );
+            setAuthStatus(
+                "LOGIN ERROR: " +
+                (
+                    error.message ||
+                    "UNKNOWN ERROR"
+                )
+            );
+            googleLoginButton.disabled =
+                false;
+        }
+    }
+    /* =========================================
+       LOGOUT
+    ========================================= */
+    async function logout() {
+        try {
+            const {
+                error
+            } =
+                await supabaseClient.auth
+                    .signOut();
+            if (error) {
+                throw error;
+            }
+            updateAuthUI(null);
+        }
+        catch (error) {
+            console.error(
+                "Logout error:",
+                error
+            );
+            setAuthStatus(
+                "LOGOUT ERROR: " +
+                (
+                    error.message ||
+                    "UNKNOWN ERROR"
+                )
+            );
+        }
+    }
+    /* =========================================
+       UPDATE AUTH UI
+    ========================================= */
+    function updateAuthUI(user) {
+        if (
+            !googleLoginButton ||
+            !logoutButton
+        ) {
+            return;
+        }
+        if (user) {
+            googleLoginButton.style.display =
+                "none";
+            logoutButton.style.display =
+                "block";
+            const name =
+                user.user_metadata?.full_name ||
+                user.user_metadata?.name ||
+                user.email ||
+                "PLAYER";
+            setAuthStatus(
+                "PLAYER: " + name
+            );
+        }
+        else {
+            googleLoginButton.style.display =
+                "flex";
+            logoutButton.style.display =
+                "block";
+            logoutButton.style.display =
+                "none";
+            setAuthStatus("");
+        }
+    }
+    /* =========================================
+       INITIAL AUTH
+    ========================================= */
+    async function initAuth() {
+        try {
+            const {
+                data: {
+                    session
+                }
+            } =
+                await supabaseClient.auth
+                    .getSession();
+            updateAuthUI(
+                session?.user || null
+            );
+        }
+        catch (error) {
+            console.error(
+                "Auth initialization error:",
+                error
+            );
+        }
+    }
+    /* =========================================
+       BUTTONS
+    ========================================= */
+    if (googleLoginButton) {
+        googleLoginButton.addEventListener(
+            "click",
+            loginWithGoogle
+        );
+    }
+    if (logoutButton) {
+        logoutButton.addEventListener(
+            "click",
+            logout
+        );
+    }
+    /* =========================================
+       AUTH STATE
+    ========================================= */
+    supabaseClient.auth.onAuthStateChange(
+        (
+            event,
+            session
+        ) => {
+            console.log(
+                "AUTH:",
+                event,
+                session?.user?.email || ""
+            );
+            updateAuthUI(
+                session?.user || null
+            );
+        }
+    );
+    initAuth();
+</script>
+<!-- GAME AUDIO -->
 <script src="audio.js"></script>
+<!-- GAME -->
 <script src="game.js"></script>
-
 </body>
 </html>
