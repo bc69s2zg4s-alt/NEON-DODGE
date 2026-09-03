@@ -1,35 +1,71 @@
-name: Create NEON DODGE Signing Key
+name: Build NEON DODGE Android
 
 on:
   workflow_dispatch:
 
 jobs:
-  create-key:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Create signing keystore
-        run: |
-          keytool -genkeypair \
-            -v \
-            -keystore neon-dodge-release.jks \
-            -alias neon-dodge \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass 20fe06da \
-            -keypass 20fe06da \
-            -dname "CN=NEON DODGE, OU=Game, O=FXD, L=Almaty, ST=Almaty, C=KZ"
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Show certificate fingerprints
-        run: |
-          keytool -list -v \
-            -keystore neon-dodge-release.jks \
-            -alias neon-dodge \
-            -storepass 20fe06da
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Upload signing key
+      - name: Prepare web files
+        run: |
+          mkdir www
+          cp index.html www/
+          cp style.css www/
+          cp game.js www/
+          cp audio.js www/
+
+      - name: Create Capacitor project
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
+          npx cap add android
+          npx cap copy android
+
+      - name: Fix Kotlin dependencies
+        run: |
+          cat >> android/build.gradle <<'EOF'
+
+          allprojects {
+              configurations.configureEach {
+                  resolutionStrategy.eachDependency { details ->
+                      if (details.requested.group == "org.jetbrains.kotlin") {
+                          details.useVersion("1.8.22")
+                      }
+                  }
+              }
+          }
+          EOF
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Clean Android build
+        run: |
+          cd android
+          ./gradlew clean
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: NEON-DODGE-SIGNING-KEY
-          path: neon-dodge-release.jks
+          name: NEON-DODGE-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
