@@ -11,6 +11,7 @@ body {
     height: 100%;
     overflow: hidden;
     background: #05060b;
+    color: white;
     font-family: Arial, Helvetica, sans-serif;
     user-select: none;
     touch-action: none;
@@ -19,12 +20,16 @@ body {
 body {
     position: fixed;
     inset: 0;
-    color: white;
 }
 
-/* =========================
-   CANVAS
-========================= */
+button,
+a {
+    font-family: inherit;
+}
+
+button {
+    cursor: pointer;
+}
 
 #gameCanvas {
     position: fixed;
@@ -36,312 +41,745 @@ body {
 }
 
 
-/* =========================
-   HUD
-========================= */
+/* ================= HUD ================= */
 
 #hud {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-
-    padding:
-        max(22px, env(safe-area-inset-top))
-        24px
-        0;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-
-    pointer-events: none;
+    inset: 0;
     z-index: 10;
+    pointer-events: none;
 }
 
-.hud-left,
-.hud-center,
-.hud-right {
-    min-width: 80px;
+.hud-block {
+    position: absolute;
+    top: max(22px, env(safe-area-inset-top));
+    left: 20px;
 }
 
-.hud-left {
-    text-align: left;
-}
-
-.hud-center {
+.hud-block.center {
+    left: 50%;
+    transform: translateX(-50%);
     text-align: center;
 }
 
-.hud-right {
+.hud-block.right {
+    left: auto;
+    right: 20px;
     text-align: right;
 }
 
-.label {
-    font-size: 10px;
-    font-weight: 700;
+.hud-block span {
+    display: block;
+    font-size: 8px;
     letter-spacing: 3px;
-    opacity: 0.45;
-    margin-bottom: 5px;
+    opacity: .4;
+    margin-bottom: 4px;
 }
 
-#score,
-#best,
-#multiplier {
-    font-size: 22px;
+.hud-block strong {
+    font-size: 21px;
+    text-shadow:
+        0 0 10px rgba(0,220,255,.7),
+        0 0 25px rgba(0,220,255,.25);
+}
+
+.hud-button {
+    pointer-events: auto;
+
+    position: absolute;
+    top: max(22px, env(safe-area-inset-top));
+    right: 20px;
+
+    width: 38px;
+    height: 38px;
+
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 50%;
+
+    background: rgba(5,10,18,.7);
+    color: white;
+
+    font-size: 14px;
+}
+
+#healthHud {
+    position: absolute;
+    left: 20px;
+    bottom: 30px;
+
+    display: flex;
+    gap: 5px;
+
+    font-size: 18px;
+}
+
+.heart-empty {
+    opacity: .15;
+    filter: grayscale(1);
+}
+
+#crystalHud {
+    position: absolute;
+    right: 20px;
+    bottom: 32px;
+
+    font-size: 15px;
     font-weight: 800;
-    letter-spacing: 1px;
 
     text-shadow:
-        0 0 8px rgba(255,255,255,0.45),
-        0 0 20px rgba(0,220,255,0.35);
+        0 0 10px rgba(0,220,255,.5);
 }
 
-#multiplier {
-    font-size: 20px;
+#abilityHud {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+
+    transform: translateX(-50%);
+
+    display: flex;
+    gap: 10px;
+
+    pointer-events: auto;
+}
+
+.ability-button {
+    width: 48px;
+    height: 48px;
+
+    border: 1px solid rgba(0,220,255,.35);
+    border-radius: 50%;
+
+    background: rgba(4,14,25,.8);
+
+    color: white;
+    font-size: 19px;
+
+    box-shadow:
+        0 0 18px rgba(0,200,255,.12);
+}
+
+.ability-button:active {
+    transform: scale(.9);
+}
+
+.ability-button.disabled {
+    opacity: .3;
+}
+
+#weaponHud {
+    position: absolute;
+    left: 20px;
+    bottom: 70px;
+
+    width: 80px;
+}
+
+.ability-title {
+    font-size: 7px;
+    letter-spacing: 2px;
+    opacity: .35;
+    margin-bottom: 4px;
+}
+
+.cooldown-bar {
+    height: 3px;
+    width: 100%;
+    background: rgba(255,255,255,.1);
+}
+
+#weaponCooldown {
+    height: 100%;
+    width: 100%;
+    background: #00e5ff;
 }
 
 
-/* =========================
-   SCREENS
-========================= */
+/* ================= GENERAL ================= */
 
 .screen {
     position: fixed;
     inset: 0;
 
+    z-index: 20;
+
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-
-    z-index: 20;
+    justify-content: center;
 
     background:
         radial-gradient(
             circle at center,
-            rgba(20, 80, 110, 0.12),
-            rgba(5, 6, 11, 0.92) 55%,
-            rgba(5, 6, 11, 0.98)
+            rgba(0,130,180,.12),
+            rgba(5,6,11,.94) 55%,
+            rgba(5,6,11,.99)
         );
 
     transition:
-        opacity 0.35s ease,
-        transform 0.35s ease;
+        opacity .3s ease,
+        transform .3s ease;
 }
 
 .hidden {
-    opacity: 0;
-    pointer-events: none;
+    opacity: 0 !important;
+    pointer-events: none !important;
     transform: scale(1.04);
 }
 
 
-/* =========================
-   LOGO
-========================= */
+/* ================= LOGO ================= */
 
 .logo {
-    font-size: clamp(52px, 15vw, 110px);
+    font-size: clamp(54px, 15vw, 105px);
     font-weight: 900;
-    line-height: 0.8;
-    letter-spacing: -4px;
-
+    line-height: .78;
+    letter-spacing: -5px;
     text-align: center;
 
-    color: #ffffff;
-
     text-shadow:
-        0 0 8px rgba(255,255,255,0.9),
-        0 0 25px rgba(0,220,255,0.8),
-        0 0 60px rgba(0,150,255,0.45);
+        0 0 8px white,
+        0 0 25px rgba(0,220,255,.9),
+        0 0 65px rgba(0,130,255,.45);
 }
 
 .logo span {
     display: block;
 
-    font-size: 0.55em;
-    letter-spacing: 8px;
-
     margin-top: 12px;
 
-    color: #00d9ff;
+    color: #00e5ff;
 
-    text-shadow:
-        0 0 8px rgba(0,220,255,1),
-        0 0 30px rgba(0,170,255,0.8),
-        0 0 70px rgba(0,120,255,0.45);
+    font-size: .5em;
+    letter-spacing: 8px;
 }
-
-
-/* =========================
-   SUBTITLE
-========================= */
 
 .subtitle {
-    margin-top: 35px;
+    margin-top: 32px;
 
-    font-size: 11px;
-    font-weight: 700;
-
+    font-size: 10px;
     letter-spacing: 5px;
+    opacity: .4;
+}
 
-    opacity: 0.5;
+.currency {
+    margin-top: 25px;
+
+    font-size: 18px;
+    font-weight: 800;
 }
 
 
-/* =========================
-   BUTTON
-========================= */
+/* ================= BUTTONS ================= */
 
-button {
-    margin-top: 42px;
-
-    width: 190px;
+.main-button {
+    width: 210px;
     height: 58px;
 
-    border: 1px solid rgba(0,220,255,0.65);
-    border-radius: 4px;
+    margin-top: 30px;
+
+    border: 1px solid rgba(0,225,255,.65);
+    border-radius: 5px;
 
     background:
         linear-gradient(
             135deg,
-            rgba(0,220,255,0.12),
-            rgba(0,100,255,0.05)
+            rgba(0,220,255,.17),
+            rgba(0,100,255,.06)
         );
 
-    color: #ffffff;
+    color: white;
 
+    font-weight: 900;
     font-size: 13px;
-    font-weight: 800;
     letter-spacing: 4px;
 
-    cursor: pointer;
-
     box-shadow:
-        0 0 12px rgba(0,220,255,0.18),
-        inset 0 0 18px rgba(0,220,255,0.04);
-
-    transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease,
-        background 0.15s ease;
+        0 0 20px rgba(0,220,255,.15),
+        inset 0 0 20px rgba(0,220,255,.04);
 }
 
-button:hover {
-    transform: translateY(-2px);
+.main-button:hover {
+    box-shadow:
+        0 0 30px rgba(0,220,255,.35),
+        inset 0 0 25px rgba(0,220,255,.1);
+}
+
+.main-button:active {
+    transform: scale(.96);
+}
+
+.menu-buttons {
+    display: flex;
+    gap: 8px;
+
+    margin-top: 12px;
+}
+
+.secondary-button {
+    min-width: 105px;
+    height: 42px;
+
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 5px;
+
+    background: rgba(255,255,255,.035);
+
+    color: white;
+
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.secondary-button:active {
+    transform: scale(.95);
+}
+
+.secondary-button.big {
+    width: 210px;
+    margin-top: 16px;
+}
+
+.text-button {
+    margin-top: 18px;
+
+    border: 0;
+    background: transparent;
+
+    color: white;
+
+    font-size: 10px;
+    letter-spacing: 3px;
+
+    opacity: .45;
+}
+
+.daily {
+    margin-top: 24px;
+
+    font-size: 9px;
+    letter-spacing: 2px;
+
+    color: #00e5ff;
+    opacity: .7;
+
+    cursor: pointer;
+}
+
+
+/* ================= PANELS ================= */
+
+.panel {
+    position: relative;
+
+    width: min(92%, 480px);
+    max-height: 86vh;
+
+    overflow-y: auto;
+
+    padding: 28px 20px;
+
+    border: 1px solid rgba(0,220,255,.15);
+    border-radius: 12px;
 
     background:
         linear-gradient(
-            135deg,
-            rgba(0,220,255,0.22),
-            rgba(0,100,255,0.1)
+            145deg,
+            rgba(10,20,35,.95),
+            rgba(4,7,13,.97)
         );
 
     box-shadow:
-        0 0 20px rgba(0,220,255,0.35),
-        inset 0 0 20px rgba(0,220,255,0.08);
+        0 0 60px rgba(0,160,255,.08),
+        inset 0 0 40px rgba(0,180,255,.025);
 }
 
-button:active {
-    transform: scale(0.96);
+.panel h1 {
+    text-align: center;
+
+    font-size: 24px;
+    letter-spacing: 5px;
+
+    margin-bottom: 8px;
+}
+
+.close-button {
+    position: absolute;
+    right: 14px;
+    top: 12px;
+
+    border: 0;
+    background: transparent;
+
+    color: white;
+
+    font-size: 28px;
+    opacity: .5;
+}
+
+.shop-currency {
+    text-align: center;
+
+    margin-bottom: 22px;
+
+    font-weight: 900;
 }
 
 
-/* =========================
-   HINT
-========================= */
+/* ================= SHOP ================= */
 
-.hint {
-    margin-top: 20px;
+.shop-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.upgrade {
+    display: flex;
+    align-items: center;
+
+    min-height: 72px;
+
+    padding: 10px;
+
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px;
+
+    background: rgba(255,255,255,.025);
+}
+
+.upgrade-icon {
+    width: 44px;
+
+    font-size: 23px;
+    text-align: center;
+}
+
+.upgrade-info {
+    flex: 1;
+    margin-left: 8px;
+}
+
+.upgrade-info h3 {
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.upgrade-info p {
+    margin-top: 4px;
+
+    font-size: 9px;
+    opacity: .45;
+}
+
+.upgrade-info small {
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 8px;
+    color: #00e5ff;
+}
+
+.upgrade button {
+    width: 58px;
+    height: 34px;
+
+    border: 1px solid rgba(0,220,255,.3);
+    border-radius: 4px;
+
+    background: rgba(0,220,255,.07);
+
+    color: white;
+
+    font-size: 8px;
+    font-weight: 800;
+}
+
+.upgrade button:disabled {
+    opacity: .25;
+}
+
+
+/* ================= SETTINGS ================= */
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 17px 0;
+
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.setting-row strong {
+    display: block;
+
+    font-size: 11px;
+    letter-spacing: 2px;
+}
+
+.setting-row small {
+    display: block;
+
+    margin-top: 5px;
+
+    font-size: 9px;
+    opacity: .35;
+}
+
+.toggle {
+    width: 62px;
+    height: 32px;
+
+    border: 1px solid rgba(0,220,255,.25);
+    border-radius: 20px;
+
+    background: rgba(0,220,255,.1);
+
+    color: #00e5ff;
+
+    font-size: 8px;
+    font-weight: 800;
+}
+
+.toggle.off {
+    color: white;
+    background: rgba(255,255,255,.04);
+}
+
+
+/* ================= FEEDBACK ================= */
+
+.feedback-panel {
+    text-align: center;
+}
+
+.feedback-panel p {
+    margin-top: 12px;
+
+    font-size: 11px;
+    opacity: .5;
+}
+
+.phone {
+    margin-top: 22px;
+
+    font-size: 20px;
+    font-weight: 900;
+
+    color: #00e5ff;
+
+    text-shadow:
+        0 0 20px rgba(0,220,255,.5);
+}
+
+.link-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text-decoration: none;
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* ================= DAILY ================= */
+
+.daily-panel {
+    text-align: center;
+}
+
+.daily-icon {
+    font-size: 60px;
+}
+
+.daily-reward {
+    margin-top: 25px;
+
+    font-size: 35px;
+    font-weight: 900;
+
+    color: #00e5ff;
+}
+
+
+/* ================= GAME OVER ================= */
+
+.game-over-title {
+    font-size: clamp(27px, 8vw, 55px);
+    font-weight: 900;
+    letter-spacing: 3px;
+
+    text-shadow:
+        0 0 12px white,
+        0 0 35px rgba(255,30,80,.8);
+}
+
+.result-score {
+    margin-top: 25px;
+    text-align: center;
+}
+
+.result-score span {
+    display: block;
 
     font-size: 9px;
     letter-spacing: 3px;
 
-    opacity: 0.25;
+    opacity: .4;
 }
 
+.result-score strong {
+    display: block;
 
-/* =========================
-   GAME OVER
-========================= */
+    margin-top: 5px;
 
-.game-over-title {
-    font-size: clamp(28px, 8vw, 60px);
-
-    font-weight: 900;
-    letter-spacing: 4px;
-
-    color: #ffffff;
+    font-size: 52px;
 
     text-shadow:
-        0 0 10px rgba(255,255,255,0.7),
-        0 0 30px rgba(255,60,100,0.75),
-        0 0 60px rgba(255,0,80,0.4);
+        0 0 25px rgba(0,220,255,.5);
 }
 
-.final-score,
-.best-score {
-    margin-top: 30px;
-    text-align: center;
+.result-best {
+    margin-top: 12px;
+
+    font-size: 10px;
+    letter-spacing: 2px;
+    opacity: .5;
 }
 
-.final-score .label,
-.best-score .label {
-    margin-bottom: 7px;
+.result-best strong {
+    color: white;
 }
 
-#finalScore {
-    font-size: 48px;
+.new-best {
+    margin-top: 15px;
+
+    color: #00e5ff;
+
+    font-size: 11px;
     font-weight: 900;
+    letter-spacing: 3px;
+}
+
+.reward-line {
+    margin-top: 18px;
+
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.revive-button {
+    margin-top: 22px;
+
+    border-color: rgba(255,210,60,.6);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,190,30,.15),
+            rgba(255,100,0,.05)
+        );
+}
+
+#reviveHint {
+    margin-top: 8px;
+
+    font-size: 7px;
+    letter-spacing: 2px;
+
+    opacity: .3;
+}
+
+
+/* ================= PAUSE ================= */
+
+.pause-title {
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: 5px;
 
     text-shadow:
-        0 0 15px rgba(255,255,255,0.6),
-        0 0 35px rgba(0,220,255,0.5);
-}
-
-#finalBest {
-    font-size: 25px;
-    font-weight: 800;
-    opacity: 0.75;
+        0 0 25px rgba(0,220,255,.5);
 }
 
 
-/* =========================
-   MOBILE
-========================= */
+/* ================= WARNING ================= */
+
+#warning {
+    position: fixed;
+    top: 30%;
+    left: 50%;
+
+    z-index: 30;
+
+    transform: translate(-50%, -50%) scale(.8);
+
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    padding: 13px 24px;
+
+    border: 1px solid rgba(255,40,80,.5);
+    border-radius: 5px;
+
+    background: rgba(60,0,15,.8);
+
+    color: #ff4168;
+
+    opacity: 0;
+    pointer-events: none;
+
+    letter-spacing: 3px;
+
+    transition: .2s;
+}
+
+#warning.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+
+/* ================= MOBILE ================= */
 
 @media (max-width: 600px) {
 
-    #hud {
-        padding-left: 18px;
-        padding-right: 18px;
+    .menu-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 330px;
     }
 
-    #score,
-    #best {
-        font-size: 19px;
+    .secondary-button {
+        min-width: 100px;
     }
 
-    #multiplier {
-        font-size: 17px;
+    .hud-block strong {
+        font-size: 18px;
     }
 
-    .label {
-        font-size: 8px;
-        letter-spacing: 2px;
+    .hud-block span {
+        font-size: 7px;
     }
 
-    button {
-        width: 180px;
-        height: 56px;
+    #healthHud {
+        bottom: 25px;
+        left: 15px;
     }
 
-    .logo {
-        letter-spacing: -3px;
+    #crystalHud {
+        right: 15px;
+        bottom: 27px;
     }
 
-    .logo span {
-        letter-spacing: 6px;
+    #weaponHud {
+        left: 15px;
     }
 }
