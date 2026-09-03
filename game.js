@@ -18,10 +18,11 @@ function resize() {
     canvas.style.height = H + "px";
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    createStars();
 }
 
 window.addEventListener("resize", resize);
-resize();
 
 /* =========================================================
    SAVE
@@ -56,8 +57,10 @@ if (!saveData) {
         ...saveData
     };
 
-    // Чтобы старое сохранение не заблокировало магазин
-    saveData.crystals = Math.max(saveData.crystals, 300);
+    saveData.crystals = Math.max(
+        saveData.crystals,
+        300
+    );
 }
 
 function save() {
@@ -92,7 +95,7 @@ let eventObjects = [];
 
 let spawnTimer = 0;
 let crystalTimer = 0;
-let eventTimer = 7;
+let eventTimer = 6;
 
 let shake = 0;
 
@@ -104,6 +107,9 @@ let shieldCooldown = 0;
 let empCooldown = 0;
 
 let eventBusy = false;
+
+let weaponTimer = 0;
+let buffSpawnTimer = 8;
 
 /* =========================================================
    DOM
@@ -476,12 +482,16 @@ function startGame() {
 
     spawnTimer = 0;
     crystalTimer = 0;
+
     eventTimer = 6;
 
     shieldCooldown = 0;
     empCooldown = 0;
 
     eventBusy = false;
+
+    weaponTimer = 0;
+    buffSpawnTimer = 8;
 
     player = {
         x: W / 2,
@@ -682,7 +692,6 @@ function updatePlayer(dt) {
 
 function difficulty() {
 
-    // Плавное увеличение сложности
     const timeFactor =
         Math.min(gameTime / 150, 1);
 
@@ -749,6 +758,7 @@ function spawnObstacle() {
         type,
 
         angle: Math.random() * Math.PI * 2,
+
         rotation:
             (Math.random() - .5) * 3,
 
@@ -1059,8 +1069,6 @@ function updateBuffObjects(dt) {
    WEAPON
 ========================================================= */
 
-let weaponTimer = 0;
-
 function shoot() {
 
     if (!running || paused || !saveData.weapon) {
@@ -1298,7 +1306,8 @@ function useEMP() {
 }
 
 /* =========================================================
-   RANDOM EVENTS
+   EVENT SYSTEM
+   НЕ ЛОМАЕТ СТАРЫЕ СОБЫТИЯ
 ========================================================= */
 
 function triggerRandomEvent() {
@@ -1307,29 +1316,91 @@ function triggerRandomEvent() {
 
     eventBusy = true;
 
-    const possible = [
-        "laserSweep",
-        "laserStrike",
-        "hunter",
-        "meteor",
-        "electric"
-    ];
+    let available = [];
 
-    // Сначала простые события
-    let available = possible;
+    /*
+        0–60:
+        Только лёгкие события.
+    */
 
-    if (gameTime < 25) {
-        available = ["meteor"];
-    } else if (gameTime < 45) {
+    if (gameTime < 60) {
+
         available = [
+            "meteor",
             "meteor",
             "laserSweep"
         ];
-    } else if (gameTime < 70) {
+    }
+
+    /*
+        60–120:
+        Добавляем быстрые лазеры.
+    */
+
+    else if (gameTime < 120) {
+
+        available = [
+            "laserSweep",
+            "laserSweep",
+            "laserStrike",
+            "meteor",
+            "hunter"
+        ];
+    }
+
+    /*
+        120–180:
+        Полный набор одиночных событий.
+    */
+
+    else if (gameTime < 180) {
+
         available = [
             "laserSweep",
             "laserStrike",
-            "hunter"
+            "hunter",
+            "meteor",
+            "electric"
+        ];
+    }
+
+    /*
+        180–300:
+        Появляются комбинации.
+    */
+
+    else if (gameTime < 300) {
+
+        available = [
+            "laserSweep",
+            "laserStrike",
+            "hunter",
+            "meteor",
+            "electric",
+            "comboLaserMeteor",
+            "comboHunterLaser",
+            "comboElectricMeteor"
+        ];
+    }
+
+    /*
+        300+:
+        Endless Chaos.
+    */
+
+    else {
+
+        available = [
+            "laserSweep",
+            "laserStrike",
+            "hunter",
+            "meteor",
+            "electric",
+            "comboLaserMeteor",
+            "comboHunterLaser",
+            "comboElectricMeteor",
+            "comboTriple",
+            "rare"
         ];
     }
 
@@ -1344,20 +1415,40 @@ function triggerRandomEvent() {
         laserSweep();
     }
 
-    if (event === "laserStrike") {
+    else if (event === "laserStrike") {
         laserStrike();
     }
 
-    if (event === "hunter") {
+    else if (event === "hunter") {
         spawnHunter();
     }
 
-    if (event === "meteor") {
+    else if (event === "meteor") {
         meteorRain();
     }
 
-    if (event === "electric") {
+    else if (event === "electric") {
         electricField();
+    }
+
+    else if (event === "comboLaserMeteor") {
+        comboLaserMeteor();
+    }
+
+    else if (event === "comboHunterLaser") {
+        comboHunterLaser();
+    }
+
+    else if (event === "comboElectricMeteor") {
+        comboElectricMeteor();
+    }
+
+    else if (event === "comboTriple") {
+        comboTriple();
+    }
+
+    else if (event === "rare") {
+        rareEvent();
     }
 }
 
@@ -1373,6 +1464,11 @@ function laserSweep() {
     );
 
     setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
 
         eventObjects.push({
             type: "laserSweep",
@@ -1419,6 +1515,11 @@ function laserStrike() {
 
     setTimeout(() => {
 
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
         eventObjects.push({
             type: "laserStrike",
 
@@ -1451,6 +1552,11 @@ function spawnHunter() {
 
     setTimeout(() => {
 
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
         eventObjects.push({
             type: "hunter",
 
@@ -1470,7 +1576,7 @@ function spawnHunter() {
 
             speed:
                 100 +
-                Math.min(gameTime, 120) *
+                Math.min(gameTime, 180) *
                 1.5,
 
             pulse: 0
@@ -1496,9 +1602,23 @@ function meteorRain() {
 
     setTimeout(() => {
 
-        for (let i = 0; i < 12; i++) {
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        const amount =
+            gameTime >= 300
+                ? 16
+                : gameTime >= 180
+                    ? 14
+                    : 12;
+
+        for (let i = 0; i < amount; i++) {
 
             setTimeout(() => {
+
+                if (!running || gameOver) return;
 
                 eventObjects.push({
                     type: "meteor",
@@ -1517,7 +1637,8 @@ function meteorRain() {
                     speed:
                         330 +
                         Math.random() *
-                        250,
+                        250 +
+                        Math.min(gameTime, 300) * .25,
 
                     angle:
                         .3 +
@@ -1548,6 +1669,11 @@ function electricField() {
 
     setTimeout(() => {
 
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
         eventObjects.push({
             type: "electric",
 
@@ -1561,7 +1687,10 @@ function electricField() {
 
             timer: 0,
 
-            duration: 6
+            duration:
+                gameTime >= 300
+                    ? 7
+                    : 6
         });
 
     }, 900);
@@ -1572,6 +1701,618 @@ function electricField() {
 }
 
 /* =========================================================
+   NEW: LASER + METEOR
+========================================================= */
+
+function comboLaserMeteor() {
+
+    showWarning(
+        "DUAL ATTACK",
+        "LASER + METEORS"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        const laserY =
+            140 +
+            Math.random() *
+            (H - 280);
+
+        eventObjects.push({
+            type: "laserSweep",
+
+            y: laserY,
+
+            thickness: 22,
+
+            active: true,
+
+            timer: 0,
+
+            duration: 1.5
+        });
+
+        for (let i = 0; i < 7; i++) {
+
+            setTimeout(() => {
+
+                if (!running || gameOver) return;
+
+                eventObjects.push({
+                    type: "meteor",
+
+                    x: Math.random() * W,
+
+                    y: -50,
+
+                    radius:
+                        12 +
+                        Math.random() * 12,
+
+                    speed:
+                        360 +
+                        Math.random() * 220,
+
+                    angle:
+                        .3 +
+                        Math.random() * .5
+                });
+
+            }, i * 210);
+        }
+
+    }, 900);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 3600);
+}
+
+/* =========================================================
+   NEW: HUNTER + LASER
+========================================================= */
+
+function comboHunterLaser() {
+
+    showWarning(
+        "HUNTER LOCK",
+        "LASER GRID ACTIVATED"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        eventObjects.push({
+            type: "hunter",
+
+            x:
+                Math.random() > .5
+                    ? -50
+                    : W + 50,
+
+            y:
+                100 +
+                Math.random() *
+                (H - 200),
+
+            radius: 22,
+
+            life: 8,
+
+            maxLife: 8,
+
+            speed:
+                125 +
+                Math.min(gameTime, 300) * 1.5,
+
+            pulse: 0
+        });
+
+        const vertical =
+            Math.random() > .5;
+
+        eventObjects.push({
+            type: "laserStrike",
+
+            vertical,
+
+            position:
+                vertical
+                    ? 40 + Math.random() * (W - 80)
+                    : 100 + Math.random() * (H - 200),
+
+            timer: 0,
+
+            duration: 1,
+
+            thickness: 30
+        });
+
+    }, 850);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 3200);
+}
+
+/* =========================================================
+   NEW: ELECTRIC + METEORS
+========================================================= */
+
+function comboElectricMeteor() {
+
+    showWarning(
+        "STORM WARNING",
+        "ELECTRIC + METEOR STORM"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        eventObjects.push({
+            type: "electric",
+
+            x:
+                Math.random() * W,
+
+            width:
+                90 +
+                Math.random() * 100,
+
+            timer: 0,
+
+            duration: 6
+        });
+
+        for (let i = 0; i < 9; i++) {
+
+            setTimeout(() => {
+
+                if (!running || gameOver) return;
+
+                eventObjects.push({
+                    type: "meteor",
+
+                    x: Math.random() * W,
+
+                    y: -50,
+
+                    radius:
+                        12 +
+                        Math.random() * 13,
+
+                    speed:
+                        340 +
+                        Math.random() * 240,
+
+                    angle:
+                        .3 +
+                        Math.random() * .5
+                });
+
+            }, i * 180);
+        }
+
+    }, 800);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 4300);
+}
+
+/* =========================================================
+   NEW: TRIPLE CHAOS
+========================================================= */
+
+function comboTriple() {
+
+    showWarning(
+        "⚠ CHAOS MODE",
+        "THREE THREATS"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        /*
+            Electric field
+        */
+
+        eventObjects.push({
+            type: "electric",
+
+            x:
+                Math.random() * W,
+
+            width:
+                80 +
+                Math.random() * 90,
+
+            timer: 0,
+
+            duration: 6
+        });
+
+        /*
+            Hunter
+        */
+
+        eventObjects.push({
+            type: "hunter",
+
+            x:
+                Math.random() > .5
+                    ? -60
+                    : W + 60,
+
+            y:
+                120 +
+                Math.random() *
+                (H - 240),
+
+            radius: 23,
+
+            life: 8,
+
+            maxLife: 8,
+
+            speed:
+                140 +
+                Math.min(gameTime, 400),
+
+            pulse: 0
+        });
+
+        /*
+            Laser
+        */
+
+        eventObjects.push({
+            type: "laserStrike",
+
+            vertical:
+                Math.random() > .5,
+
+            position:
+                Math.random() > .5
+                    ? 40 + Math.random() * (W - 80)
+                    : 100 + Math.random() * (H - 200),
+
+            timer: 0,
+
+            duration: 1,
+
+            thickness: 32
+        });
+
+        /*
+            Небольшая задержка метеоров
+        */
+
+        for (let i = 0; i < 6; i++) {
+
+            setTimeout(() => {
+
+                if (!running || gameOver) return;
+
+                eventObjects.push({
+                    type: "meteor",
+
+                    x:
+                        Math.random() * W,
+
+                    y: -50,
+
+                    radius:
+                        11 +
+                        Math.random() * 13,
+
+                    speed:
+                        360 +
+                        Math.random() * 250,
+
+                    angle:
+                        .3 +
+                        Math.random() * .5
+                });
+
+            }, i * 240);
+        }
+
+    }, 800);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 5000);
+}
+
+/* =========================================================
+   RARE EVENTS
+========================================================= */
+
+function rareEvent() {
+
+    const rare = [
+        "crystalRush",
+        "redAlert",
+        "safeZone",
+        "overcharge"
+    ];
+
+    const type =
+        rare[
+            Math.floor(
+                Math.random() * rare.length
+            )
+        ];
+
+    if (type === "crystalRush") {
+        crystalRush();
+    }
+
+    if (type === "redAlert") {
+        redAlert();
+    }
+
+    if (type === "safeZone") {
+        safeZone();
+    }
+
+    if (type === "overcharge") {
+        overcharge();
+    }
+}
+
+/* =========================================================
+   CRYSTAL RUSH
+========================================================= */
+
+function crystalRush() {
+
+    showWarning(
+        "💎 CRYSTAL RUSH",
+        "COLLECT EVERYTHING!"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        for (let i = 0; i < 24; i++) {
+
+            eventObjects.push({
+                type: "rushCrystal",
+
+                x:
+                    25 +
+                    Math.random() *
+                    (W - 50),
+
+                y:
+                    -20 -
+                    Math.random() * 500,
+
+                radius: 8,
+
+                speed:
+                    250 +
+                    Math.random() * 100,
+
+                angle:
+                    Math.random() *
+                    Math.PI * 2
+            });
+        }
+
+    }, 700);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 5500);
+}
+
+/* =========================================================
+   RED ALERT
+========================================================= */
+
+function redAlert() {
+
+    showWarning(
+        "🔴 RED ALERT",
+        "SURVIVE THE ASSAULT"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        for (let i = 0; i < 8; i++) {
+
+            eventObjects.push({
+                type: "meteor",
+
+                x:
+                    Math.random() * W,
+
+                y:
+                    -50 -
+                    Math.random() * 250,
+
+                radius:
+                    13 +
+                    Math.random() * 13,
+
+                speed:
+                    400 +
+                    Math.random() * 250,
+
+                angle:
+                    .3 +
+                    Math.random() * .5
+            });
+        }
+
+        eventObjects.push({
+            type: "hunter",
+
+            x:
+                Math.random() > .5
+                    ? -60
+                    : W + 60,
+
+            y:
+                100 +
+                Math.random() *
+                (H - 200),
+
+            radius: 23,
+
+            life: 9,
+
+            maxLife: 9,
+
+            speed:
+                150 +
+                Math.min(gameTime, 400),
+
+            pulse: 0
+        });
+
+        eventObjects.push({
+            type: "laserStrike",
+
+            vertical:
+                Math.random() > .5,
+
+            position:
+                Math.random() > .5
+                    ? 40 + Math.random() * (W - 80)
+                    : 100 + Math.random() * (H - 200),
+
+            timer: 0,
+
+            duration: 1,
+
+            thickness: 34
+        });
+
+    }, 900);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 4500);
+}
+
+/* =========================================================
+   SAFE ZONE
+========================================================= */
+
+function safeZone() {
+
+    showWarning(
+        "🟢 SAFE ZONE",
+        "TAKE A BREATH"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        eventObjects.push({
+            type: "safeZone",
+
+            x:
+                W * .5,
+
+            y:
+                H * .58,
+
+            radius:
+                Math.min(W, H) * .18,
+
+            timer: 0,
+
+            duration: 8
+        });
+
+        /*
+            На время Safe Zone даём щит.
+        */
+
+        activateBuff("SHIELD");
+
+    }, 700);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 9000);
+}
+
+/* =========================================================
+   OVERCHARGE
+========================================================= */
+
+function overcharge() {
+
+    showWarning(
+        "⚡ OVERCHARGE",
+        "POWER SURGE"
+    );
+
+    setTimeout(() => {
+
+        if (!running || gameOver) {
+            eventBusy = false;
+            return;
+        }
+
+        activateBuff("DOUBLE");
+        activateBuff("LASER");
+
+        score += 100;
+
+        createExplosion(
+            player.x,
+            player.y,
+            35
+        );
+
+        shake = .35;
+
+    }, 600);
+
+    setTimeout(() => {
+        eventBusy = false;
+    }, 2500);
+}
+
+/* =========================================================
    EVENTS UPDATE
 ========================================================= */
 
@@ -1579,18 +2320,62 @@ function updateEvents(dt) {
 
     eventTimer -= dt;
 
-    const nextEventTime =
-        Math.max(
-            4,
-            11 -
-            Math.min(gameTime / 20, 6)
-        );
+    /*
+        Чем дольше играем —
+        тем чаще происходят события.
+
+        При этом не превращаем игру
+        в мясо сразу после старта.
+    */
+
+    let nextEventTime;
+
+    if (gameTime < 60) {
+
+        nextEventTime =
+            12 +
+            Math.random() * 5;
+
+    } else if (gameTime < 120) {
+
+        nextEventTime =
+            10 +
+            Math.random() * 4;
+
+    } else if (gameTime < 180) {
+
+        nextEventTime =
+            8 +
+            Math.random() * 4;
+
+    } else if (gameTime < 300) {
+
+        nextEventTime =
+            7 +
+            Math.random() * 3;
+
+    } else {
+
+        /*
+            После 5 минут:
+            5–8 секунд между попытками события.
+        */
+
+        nextEventTime =
+            Math.max(
+                5,
+                8 -
+                Math.min(
+                    2,
+                    (gameTime - 300) / 180
+                )
+            ) +
+            Math.random() * 2.5;
+    }
 
     if (eventTimer <= 0) {
 
-        eventTimer =
-            nextEventTime +
-            Math.random() * 5;
+        eventTimer = nextEventTime;
 
         triggerRandomEvent();
     }
@@ -1603,7 +2388,15 @@ function updateEvents(dt) {
 
         const o = eventObjects[i];
 
+        /*
+            Баффы обрабатываются отдельно.
+        */
+
         if (o.type === "buff") continue;
+
+        /* =========================================
+           LASER SWEEP
+        ========================================= */
 
         if (o.type === "laserSweep") {
 
@@ -1633,6 +2426,10 @@ function updateEvents(dt) {
             }
         }
 
+        /* =========================================
+           LASER STRIKE
+        ========================================= */
+
         if (o.type === "laserStrike") {
 
             o.timer += dt;
@@ -1657,6 +2454,10 @@ function updateEvents(dt) {
                 eventObjects.splice(i, 1);
             }
         }
+
+        /* =========================================
+           HUNTER
+        ========================================= */
 
         if (o.type === "hunter") {
 
@@ -1690,7 +2491,6 @@ function updateEvents(dt) {
 
                 damagePlayer();
 
-                // Отбрасываем охотника
                 o.x -=
                     dx /
                     Math.max(dist, 1) *
@@ -1714,6 +2514,10 @@ function updateEvents(dt) {
             }
         }
 
+        /* =========================================
+           METEOR
+        ========================================= */
+
         if (o.type === "meteor") {
 
             o.x +=
@@ -1733,8 +2537,11 @@ function updateEvents(dt) {
                 player.radius +
                 o.radius
             ) {
+
                 damagePlayer();
+
                 eventObjects.splice(i, 1);
+
                 continue;
             }
 
@@ -1742,6 +2549,10 @@ function updateEvents(dt) {
                 eventObjects.splice(i, 1);
             }
         }
+
+        /* =========================================
+           ELECTRIC FIELD
+        ========================================= */
 
         if (o.type === "electric") {
 
@@ -1767,7 +2578,95 @@ function updateEvents(dt) {
                 eventObjects.splice(i, 1);
             }
         }
+
+        /* =========================================
+           CRYSTAL RUSH
+        ========================================= */
+
+        if (o.type === "rushCrystal") {
+
+            o.y += o.speed * dt;
+
+            o.angle += dt * 5;
+
+            if (
+                Math.hypot(
+                    o.x - player.x,
+                    o.y - player.y
+                ) <
+                player.radius +
+                o.radius +
+                6
+            ) {
+
+                saveData.crystals += 2;
+
+                score +=
+                    40 *
+                    multiplier;
+
+                createExplosion(
+                    o.x,
+                    o.y,
+                    10
+                );
+
+                eventObjects.splice(i, 1);
+
+                save();
+
+                continue;
+            }
+
+            if (o.y > H + 40) {
+                eventObjects.splice(i, 1);
+            }
+        }
+
+        /* =========================================
+           SAFE ZONE
+        ========================================= */
+
+        if (o.type === "safeZone") {
+
+            o.timer += dt;
+
+            /*
+                Внутри зоны препятствия
+                не наносят урон.
+            */
+
+            if (o.timer >= o.duration) {
+                eventObjects.splice(i, 1);
+            }
+        }
     }
+}
+
+/* =========================================================
+   SAFE ZONE COLLISION HELPER
+========================================================= */
+
+function playerInsideSafeZone() {
+
+    for (const o of eventObjects) {
+
+        if (o.type !== "safeZone") continue;
+
+        if (o.timer >= o.duration) continue;
+
+        const dist =
+            Math.hypot(
+                player.x - o.x,
+                player.y - o.y
+            );
+
+        if (dist < o.radius) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /* =========================================================
@@ -1800,7 +2699,8 @@ function damagePlayer() {
     if (
         player.invincible > 0 ||
         player.shield > 0 ||
-        hasBuff("SHIELD")
+        hasBuff("SHIELD") ||
+        playerInsideSafeZone()
     ) {
         return;
     }
@@ -1889,17 +2789,23 @@ function updateScore(dt) {
    BUFF SPAWN
 ========================================================= */
 
-let buffSpawnTimer = 8;
-
 function updateBuffSpawning(dt) {
 
     buffSpawnTimer -= dt;
 
     if (buffSpawnTimer <= 0) {
 
+        /*
+            После 3 минут баффы
+            появляются немного чаще.
+        */
+
         buffSpawnTimer =
-            12 +
-            Math.random() * 8;
+            gameTime >= 300
+                ? 10 +
+                  Math.random() * 6
+                : 12 +
+                  Math.random() * 8;
 
         spawnBuff();
     }
@@ -1923,20 +2829,21 @@ function createStars() {
         stars.push({
             x: Math.random() * W,
             y: Math.random() * H,
+
             size:
                 .5 +
                 Math.random() * 1.5,
+
             speed:
                 15 +
                 Math.random() * 70,
+
             alpha:
                 .2 +
                 Math.random() * .8
         });
     }
 }
-
-createStars();
 
 function updateStars(dt) {
 
@@ -1948,8 +2855,11 @@ function updateStars(dt) {
             (1 + gameTime / 80);
 
         if (s.y > H) {
+
             s.y = 0;
-            s.x = Math.random() * W;
+
+            s.x =
+                Math.random() * W;
         }
     }
 }
@@ -2016,13 +2926,19 @@ function updateParticles(dt) {
 }
 
 /* =========================================================
-   DRAW
+   DRAW BACKGROUND
 ========================================================= */
 
 function drawBackground() {
 
     ctx.fillStyle = "#03050a";
-    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
 
     const gradient =
         ctx.createRadialGradient(
@@ -2045,7 +2961,13 @@ function drawBackground() {
     );
 
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
 
     for (const s of stars) {
 
@@ -2054,6 +2976,7 @@ function drawBackground() {
         ctx.fillStyle = "#fff";
 
         ctx.beginPath();
+
         ctx.arc(
             s.x,
             s.y,
@@ -2061,12 +2984,12 @@ function drawBackground() {
             0,
             Math.PI * 2
         );
+
         ctx.fill();
     }
 
     ctx.globalAlpha = 1;
 
-    // сетка
     ctx.strokeStyle =
         "rgba(0,180,255,.045)";
 
@@ -2086,8 +3009,17 @@ function drawBackground() {
     ) {
 
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, H);
+
+        ctx.moveTo(
+            x,
+            0
+        );
+
+        ctx.lineTo(
+            x,
+            H
+        );
+
         ctx.stroke();
     }
 
@@ -2098,8 +3030,17 @@ function drawBackground() {
     ) {
 
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(W, y);
+
+        ctx.moveTo(
+            0,
+            y
+        );
+
+        ctx.lineTo(
+            W,
+            y
+        );
+
         ctx.stroke();
     }
 }
@@ -2112,14 +3053,14 @@ function drawPlayer() {
 
     if (!player) return;
 
-    // trail
     for (
         let i = 0;
         i < player.trail.length;
         i++
     ) {
 
-        const p = player.trail[i];
+        const p =
+            player.trail[i];
 
         ctx.globalAlpha =
             p.life *
@@ -2259,10 +3200,17 @@ function drawObstacles() {
 
         ctx.save();
 
-        ctx.translate(o.x, o.y);
-        ctx.rotate(o.angle);
+        ctx.translate(
+            o.x,
+            o.y
+        );
+
+        ctx.rotate(
+            o.angle
+        );
 
         ctx.shadowBlur = 22;
+
         ctx.shadowColor =
             o.type === "fast"
                 ? "#ff285d"
@@ -2280,10 +3228,26 @@ function drawObstacles() {
 
         ctx.beginPath();
 
-        ctx.moveTo(0, -o.size);
-        ctx.lineTo(o.size, 0);
-        ctx.lineTo(0, o.size);
-        ctx.lineTo(-o.size, 0);
+        ctx.moveTo(
+            0,
+            -o.size
+        );
+
+        ctx.lineTo(
+            o.size,
+            0
+        );
+
+        ctx.lineTo(
+            0,
+            o.size
+        );
+
+        ctx.lineTo(
+            -o.size,
+            0
+        );
+
         ctx.closePath();
 
         ctx.fill();
@@ -2305,8 +3269,14 @@ function drawCrystals() {
 
         ctx.save();
 
-        ctx.translate(c.x, c.y);
-        ctx.rotate(c.angle);
+        ctx.translate(
+            c.x,
+            c.y
+        );
+
+        ctx.rotate(
+            c.angle
+        );
 
         ctx.shadowBlur = 18;
         ctx.shadowColor = "#00eaff";
@@ -2315,10 +3285,25 @@ function drawCrystals() {
 
         ctx.beginPath();
 
-        ctx.moveTo(0, -c.radius);
-        ctx.lineTo(c.radius * .7, 0);
-        ctx.lineTo(0, c.radius);
-        ctx.lineTo(-c.radius * .7, 0);
+        ctx.moveTo(
+            0,
+            -c.radius
+        );
+
+        ctx.lineTo(
+            c.radius * .7,
+            0
+        );
+
+        ctx.lineTo(
+            0,
+            c.radius
+        );
+
+        ctx.lineTo(
+            -c.radius * .7,
+            0
+        );
 
         ctx.closePath();
 
@@ -2340,6 +3325,7 @@ function drawProjectiles() {
         ctx.shadowColor = "#00ffff";
 
         ctx.strokeStyle = "#00ffff";
+
         ctx.lineWidth = 3;
 
         ctx.beginPath();
@@ -2372,13 +3358,20 @@ function drawBuffObjects() {
 
         ctx.save();
 
-        ctx.translate(o.x, o.y);
-        ctx.rotate(o.rotation);
+        ctx.translate(
+            o.x,
+            o.y
+        );
+
+        ctx.rotate(
+            o.rotation
+        );
 
         ctx.shadowBlur = 25;
         ctx.shadowColor = "#00eaff";
 
         ctx.strokeStyle = "#00eaff";
+
         ctx.fillStyle =
             "rgba(0,220,255,.14)";
 
@@ -2397,10 +3390,14 @@ function drawBuffObjects() {
         ctx.fill();
         ctx.stroke();
 
-        ctx.rotate(-o.rotation);
+        ctx.rotate(
+            -o.rotation
+        );
 
         ctx.font = "17px Arial";
+
         ctx.textAlign = "center";
+
         ctx.textBaseline = "middle";
 
         ctx.fillText(
@@ -2520,6 +3517,7 @@ function drawEvents() {
             ctx.shadowColor = "#ff174f";
 
             ctx.strokeStyle = "#ff174f";
+
             ctx.fillStyle =
                 "rgba(255,20,70,.18)";
 
@@ -2560,9 +3558,14 @@ function drawEvents() {
 
             ctx.save();
 
-            ctx.translate(o.x, o.y);
+            ctx.translate(
+                o.x,
+                o.y
+            );
 
-            ctx.rotate(o.angle);
+            ctx.rotate(
+                o.angle
+            );
 
             ctx.shadowBlur = 25;
             ctx.shadowColor = "#ff7b00";
@@ -2613,7 +3616,10 @@ function drawEvents() {
 
             ctx.lineWidth = 2;
 
-            ctx.setLineDash([8, 10]);
+            ctx.setLineDash([
+                8,
+                10
+            ]);
 
             ctx.beginPath();
 
@@ -2633,6 +3639,117 @@ function drawEvents() {
 
             ctx.restore();
         }
+
+        /* =========================================
+           CRYSTAL RUSH
+        ========================================= */
+
+        if (o.type === "rushCrystal") {
+
+            ctx.save();
+
+            ctx.translate(
+                o.x,
+                o.y
+            );
+
+            ctx.rotate(
+                o.angle
+            );
+
+            ctx.shadowBlur = 25;
+            ctx.shadowColor = "#00eaff";
+
+            ctx.fillStyle = "#00eaff";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                0,
+                -o.radius
+            );
+
+            ctx.lineTo(
+                o.radius * .8,
+                0
+            );
+
+            ctx.lineTo(
+                0,
+                o.radius
+            );
+
+            ctx.lineTo(
+                -o.radius * .8,
+                0
+            );
+
+            ctx.closePath();
+
+            ctx.fill();
+
+            ctx.strokeStyle = "#ffffff";
+
+            ctx.lineWidth = 1;
+
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        /* =========================================
+           SAFE ZONE
+        ========================================= */
+
+        if (o.type === "safeZone") {
+
+            const pulse =
+                Math.sin(
+                    performance.now() * .006
+                ) * 5;
+
+            ctx.save();
+
+            ctx.globalAlpha = .18;
+
+            ctx.fillStyle = "#00ff88";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                o.x,
+                o.y,
+                o.radius + pulse,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.globalAlpha = .75;
+
+            ctx.strokeStyle = "#00ff88";
+
+            ctx.lineWidth = 3;
+
+            ctx.shadowBlur = 25;
+
+            ctx.shadowColor = "#00ff88";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                o.x,
+                o.y,
+                o.radius + pulse,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.stroke();
+
+            ctx.restore();
+        }
     }
 }
 
@@ -2645,7 +3762,10 @@ function drawParticles() {
     for (const p of particles) {
 
         ctx.globalAlpha =
-            Math.max(0, p.life);
+            Math.max(
+                0,
+                p.life
+            );
 
         ctx.fillStyle = "#00eaff";
 
@@ -2816,7 +3936,6 @@ document.getElementById("reviveButton").onclick = () => {
     btn.disabled = true;
     btn.textContent = "WATCHING AD...";
 
-    // Здесь позже подключается настоящий рекламный SDK.
     setTimeout(() => {
 
         gameOver = false;
@@ -2862,7 +3981,11 @@ document.getElementById("restartButton").onclick =
 
 function loop(now) {
 
-    if (!running || paused || gameOver) {
+    if (
+        !running ||
+        paused ||
+        gameOver
+    ) {
         return;
     }
 
@@ -2880,13 +4003,17 @@ function loop(now) {
     gameTime += dt;
 
     updateStars(dt);
+
     updatePlayer(dt);
 
     updateObstacles(dt);
+
     updateCrystals(dt);
 
     updateBuffSpawning(dt);
+
     updateBuffObjects(dt);
+
     updateBuffs(dt);
 
     updateEvents(dt);
@@ -2934,14 +4061,23 @@ function draw() {
     drawBackground();
 
     drawCrystals();
+
     drawObstacles();
+
     drawEvents();
+
     drawBuffObjects();
+
     drawProjectiles();
+
     drawParticles();
+
     drawPlayer();
 
-    // LASER BUFF
+    /* =========================================
+       LASER BUFF
+    ========================================= */
+
     if (hasBuff("LASER")) {
 
         ctx.save();
@@ -2953,9 +4089,11 @@ function draw() {
             ) * .2;
 
         ctx.shadowBlur = 30;
+
         ctx.shadowColor = "#ff003c";
 
         ctx.strokeStyle = "#ff174f";
+
         ctx.lineWidth = 5;
 
         ctx.beginPath();
@@ -2974,18 +4112,19 @@ function draw() {
 
         ctx.restore();
 
-        // уничтожаем препятствия в луче
         for (
             let i = obstacles.length - 1;
             i >= 0;
             i--
         ) {
 
-            const o = obstacles[i];
+            const o =
+                obstacles[i];
 
             if (
                 Math.abs(
-                    o.x - player.x
+                    o.x -
+                    player.x
                 ) <
                 o.size
             ) {
@@ -2996,7 +4135,10 @@ function draw() {
                     5
                 );
 
-                obstacles.splice(i, 1);
+                obstacles.splice(
+                    i,
+                    1
+                );
 
                 score +=
                     25 *
@@ -3024,12 +4166,15 @@ document.getElementById(
    INITIALIZATION
 ========================================================= */
 
+resize();
+
 updateMenuUI();
+
 updateSettingsUI();
+
 updateDailyUI();
 
 bestEl.textContent =
     saveData.best;
 
-/* Make menu visible */
 showScreen(menu);
