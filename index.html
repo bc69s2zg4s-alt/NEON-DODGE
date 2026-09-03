@@ -2,16 +2,17 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#05060b">
-<title>NEON DODGE</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#05060b">
+    <title>NEON DODGE</title>
 <link rel="stylesheet" href="style.css">
 <style>
-    /* GOOGLE AUTH */
+    /* =========================
+       GOOGLE AUTH
+    ========================= */
     .auth-box {
-        width: min(90%, 360px);
-        margin: 0 auto 18px;
+        width: min(330px, 86vw);
+        margin-top: 25px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -19,34 +20,28 @@
     }
     .google-login-btn {
         width: 100%;
-        min-height: 48px;
+        min-height: 50px;
+        padding: 10px 16px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
-        border: 1px solid rgba(255,255,255,0.18);
-        border-radius: 12px;
-        background: rgba(255,255,255,0.08);
         color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 12px;
         font-family: inherit;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
         cursor: pointer;
-        transition:
-            transform 0.15s ease,
-            background 0.15s ease,
-            border-color 0.15s ease;
-    }
-    .google-login-btn:hover {
-        background: rgba(255,255,255,0.14);
-        border-color: rgba(255,255,255,0.35);
+        transition: .15s;
     }
     .google-login-btn:active {
-        transform: scale(0.97);
+        transform: scale(.96);
     }
     .google-login-btn:disabled {
-        opacity: 0.5;
+        opacity: .5;
         pointer-events: none;
     }
     .google-icon {
@@ -60,29 +55,74 @@
         color: #4285f4;
         font-family: Arial, sans-serif;
         font-size: 17px;
-        font-weight: 700;
+        font-weight: 900;
     }
     .auth-status {
         min-height: 16px;
-        color: rgba(255,255,255,0.7);
-        font-size: 11px;
+        max-width: 100%;
+        color: rgba(255,255,255,.65);
+        font-size: 9px;
         text-align: center;
-        word-break: break-word;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .logout-btn {
         min-height: 38px;
         padding: 0 18px;
-        border: 1px solid rgba(255,255,255,0.15);
+        color: rgba(255,255,255,.75);
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.15);
         border-radius: 10px;
-        background: rgba(255,255,255,0.06);
-        color: rgba(255,255,255,0.75);
         font-family: inherit;
-        font-size: 11px;
-        font-weight: 700;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 1px;
         cursor: pointer;
     }
     .logout-btn:active {
-        transform: scale(0.97);
+        transform: scale(.96);
+    }
+    /* MOBILE */
+    @media (max-height: 700px) {
+        .menu-subtitle {
+            margin-top: 14px;
+        }
+        .auth-box {
+            margin-top: 15px;
+        }
+        .menu-buttons {
+            margin-top: 18px;
+            gap: 7px;
+        }
+        .main-btn {
+            min-height: 45px;
+            padding: 10px 18px;
+        }
+        .menu-crystals {
+            margin-top: 12px;
+        }
+    }
+    @media (max-height: 600px) {
+        .logo {
+            font-size: 48px;
+        }
+        .auth-box {
+            margin-top: 10px;
+        }
+        .google-login-btn {
+            min-height: 42px;
+        }
+        .menu-buttons {
+            margin-top: 10px;
+        }
+        .main-btn {
+            min-height: 38px;
+            padding: 7px 15px;
+        }
+        .menu-crystals {
+            display: none;
+        }
     }
 </style>
 </head>
@@ -127,9 +167,13 @@
     </button>
 </div>
 </div>
-<!-- BUFFS -->
+<!-- =========================
+     BUFFS
+========================= -->
 <div id="buffContainer"></div>
-<!-- EVENT WARNING -->
+<!-- =========================
+     EVENT WARNING
+========================= -->
 <div id="eventWarning">
 <div id="eventWarningTitle">
     WARNING
@@ -151,7 +195,8 @@
 <div class="auth-box">
     <button
         id="googleLoginButton"
-        class="google-login-btn">
+        class="google-login-btn"
+        type="button">
         <span class="google-icon">
             G
         </span>
@@ -166,6 +211,7 @@
     <button
         id="logoutButton"
         class="logout-btn"
+        type="button"
         style="display:none;">
         LOG OUT
     </button>
@@ -214,9 +260,7 @@
             ❤️
         </div>
         <div class="upgrade-info">
-            <h3>
-                EXTRA LIFE
-            </h3>
+            <h3>EXTRA LIFE</h3>
             <p>
                 +1 maximum life
             </p>
@@ -233,9 +277,7 @@
             🔫
         </div>
         <div class="upgrade-info">
-            <h3>
-                NEON WEAPON
-            </h3>
+            <h3>NEON WEAPON</h3>
             <p>
                 Unlock automatic shooting
             </p>
@@ -252,9 +294,7 @@
             💥
         </div>
         <div class="upgrade-info">
-            <h3>
-                WEAPON DAMAGE
-            </h3>
+            <h3>WEAPON DAMAGE</h3>
             <p>
                 More damage per shot
             </p>
@@ -271,9 +311,7 @@
             🛡️
         </div>
         <div class="upgrade-info">
-            <h3>
-                SHIELD
-            </h3>
+            <h3>SHIELD</h3>
             <p>
                 Better shield cooldown
             </p>
@@ -290,9 +328,7 @@
             ⚡
         </div>
         <div class="upgrade-info">
-            <h3>
-                EMP
-            </h3>
+            <h3>EMP</h3>
             <p>
                 Stronger EMP radius
             </p>
@@ -316,19 +352,13 @@
         data-close="settingsPanel">
         ←
     </button>
-    <h2>
-        SETTINGS
-    </h2>
+    <h2>SETTINGS</h2>
 </div>
 <div class="settings-list">
     <div class="setting">
         <div>
-            <h3>
-                🎵 MUSIC
-            </h3>
-            <p>
-                Background music
-            </p>
+            <h3>🎵 MUSIC</h3>
+            <p>Background music</p>
         </div>
         <button
             id="musicToggle"
@@ -338,12 +368,8 @@
     </div>
     <div class="setting">
         <div>
-            <h3>
-                🔊 SOUND
-            </h3>
-            <p>
-                Game sounds
-            </p>
+            <h3>🔊 SOUND</h3>
+            <p>Game sounds</p>
         </div>
         <button
             id="soundToggle"
@@ -353,12 +379,8 @@
     </div>
     <div class="setting">
         <div>
-            <h3>
-                📳 VIBRATION
-            </h3>
-            <p>
-                Haptic feedback
-            </p>
+            <h3>📳 VIBRATION</h3>
+            <p>Haptic feedback</p>
         </div>
         <button
             id="vibrationToggle"
@@ -378,9 +400,7 @@
         data-close="feedbackPanel">
         ←
     </button>
-    <h2>
-        FEEDBACK
-    </h2>
+    <h2>FEEDBACK</h2>
 </div>
 <div class="feedback-content">
     <div class="feedback-icon">
@@ -396,6 +416,7 @@
     <a
         href="https://t.me/NEON_DODGE"
         target="_blank"
+        rel="noopener"
         class="telegram-btn">
         ✈ TELEGRAM
         <strong>
@@ -414,9 +435,7 @@
         data-close="dailyPanel">
         ←
     </button>
-    <h2>
-        DAILY REWARD
-    </h2>
+    <h2>DAILY REWARD</h2>
 </div>
 <div class="daily-content">
     <div class="daily-icon">
@@ -447,9 +466,7 @@
     GAME OVER
 </div>
 <div class="final-score">
-    <span>
-        SCORE
-    </span>
+    <span>SCORE</span>
     <strong id="finalScore">
         0
     </strong>
@@ -500,9 +517,6 @@
 ========================= -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    /* =========================================
-       SUPABASE CONFIG
-    ========================================= */
     const SUPABASE_URL =
         "https://vvnkocavonlstytnnfjw.supabase.co";
     const SUPABASE_KEY =
@@ -512,9 +526,9 @@
             SUPABASE_URL,
             SUPABASE_KEY
         );
-    /* =========================================
+    /* =========================
        AUTH ELEMENTS
-    ========================================= */
+    ========================= */
     const googleLoginButton =
         document.getElementById(
             "googleLoginButton"
@@ -527,41 +541,40 @@
         document.getElementById(
             "authStatus"
         );
-    /* =========================================
-       STATUS
-    ========================================= */
+    /* =========================
+       AUTH STATUS
+    ========================= */
     function setAuthStatus(text) {
         if (authStatus) {
             authStatus.textContent =
                 text || "";
         }
     }
-    /* =========================================
+    /* =========================
        GOOGLE LOGIN
-    ========================================= */
+    ========================= */
     async function loginWithGoogle() {
+        if (!googleLoginButton) {
+            return;
+        }
         try {
+            googleLoginButton.disabled =
+                true;
             setAuthStatus(
                 "CONNECTING..."
             );
-            googleLoginButton.disabled =
-                true;
-            const {
-                error
-            } =
-                await supabaseClient.auth
-                    .signInWithOAuth({
-                        provider: "google",
-                        options: {
-                            redirectTo:
-                                window.location.origin
-                        }
-                    });
-            if (error) {
-                throw error;
+            const result =
+                await supabaseClient.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                        redirectTo:
+                            window.location.origin
+                    }
+                });
+            if (result.error) {
+                throw result.error;
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error(
                 "Google login error:",
                 error
@@ -577,22 +590,18 @@
                 false;
         }
     }
-    /* =========================================
+    /* =========================
        LOGOUT
-    ========================================= */
+    ========================= */
     async function logout() {
         try {
-            const {
-                error
-            } =
-                await supabaseClient.auth
-                    .signOut();
-            if (error) {
-                throw error;
+            const result =
+                await supabaseClient.auth.signOut();
+            if (result.error) {
+                throw result.error;
             }
             updateAuthUI(null);
-        }
-        catch (error) {
+        } catch (error) {
             console.error(
                 "Logout error:",
                 error
@@ -606,14 +615,12 @@
             );
         }
     }
-    /* =========================================
+    /* =========================
        UPDATE AUTH UI
-    ========================================= */
+    ========================= */
     function updateAuthUI(user) {
-        if (
-            !googleLoginButton ||
-            !logoutButton
-        ) {
+        if (!googleLoginButton ||
+            !logoutButton) {
             return;
         }
         if (user) {
@@ -629,43 +636,42 @@
             setAuthStatus(
                 "PLAYER: " + name
             );
-        }
-        else {
+        } else {
             googleLoginButton.style.display =
                 "flex";
             logoutButton.style.display =
-                "block";
-            logoutButton.style.display =
                 "none";
+            googleLoginButton.disabled =
+                false;
             setAuthStatus("");
         }
     }
-    /* =========================================
-       INITIAL AUTH
-    ========================================= */
+    /* =========================
+       INITIAL SESSION
+    ========================= */
     async function initAuth() {
         try {
             const {
-                data: {
-                    session
-                }
+                data,
+                error
             } =
-                await supabaseClient.auth
-                    .getSession();
+                await supabaseClient.auth.getSession();
+            if (error) {
+                throw error;
+            }
             updateAuthUI(
-                session?.user || null
+                data.session?.user || null
             );
-        }
-        catch (error) {
+        } catch (error) {
             console.error(
                 "Auth initialization error:",
                 error
             );
         }
     }
-    /* =========================================
+    /* =========================
        BUTTONS
-    ========================================= */
+    ========================= */
     if (googleLoginButton) {
         googleLoginButton.addEventListener(
             "click",
@@ -678,9 +684,9 @@
             logout
         );
     }
-    /* =========================================
+    /* =========================
        AUTH STATE
-    ========================================= */
+    ========================= */
     supabaseClient.auth.onAuthStateChange(
         (
             event,
@@ -696,11 +702,18 @@
             );
         }
     );
+    /* =========================
+       START AUTH
+    ========================= */
     initAuth();
 </script>
-<!-- GAME AUDIO -->
+<!-- =========================
+     GAME AUDIO
+========================= -->
 <script src="audio.js"></script>
-<!-- GAME -->
+<!-- =========================
+     GAME
+========================= -->
 <script src="game.js"></script>
 </body>
 </html>
