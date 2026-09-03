@@ -71,6 +71,24 @@ function save() {
 }
 
 /* =========================================================
+   AUDIO
+========================================================= */
+
+function initAudio() {
+    if (typeof AudioFX === "undefined") return;
+
+    AudioFX.init();
+    AudioFX.resume();
+}
+
+function audioClick() {
+    if (typeof AudioFX === "undefined") return;
+
+    initAudio();
+    AudioFX.click();
+}
+
+/* =========================================================
    GAME STATE
 ========================================================= */
 
@@ -169,36 +187,64 @@ function openMenu() {
     updateMenuUI();
 }
 
-document.getElementById("playButton").onclick = startGame;
+document.getElementById("playButton").onclick = () => {
+    initAudio();
+
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.music
+    ) {
+        AudioFX.setMusic(true);
+    }
+
+    audioClick();
+    startGame();
+};
 
 document.getElementById("shopButton").onclick = () => {
+    audioClick();
     updateMenuUI();
     showScreen(shopPanel);
 };
 
 document.getElementById("settingsButton").onclick = () => {
+    audioClick();
     updateSettingsUI();
     showScreen(settingsPanel);
 };
 
 document.getElementById("feedbackButton").onclick = () => {
+    audioClick();
     showScreen(feedbackPanel);
 };
 
 document.getElementById("dailyButton").onclick = () => {
+    audioClick();
     updateDailyUI();
     showScreen(dailyPanel);
 };
 
 document.querySelectorAll("[data-close]").forEach(btn => {
-    btn.onclick = openMenu;
+    btn.onclick = () => {
+        audioClick();
+        openMenu();
+    };
 });
 
-document.getElementById("menuButton").onclick = openMenu;
+document.getElementById("menuButton").onclick = () => {
+    audioClick();
+    openMenu();
+};
 
-document.getElementById("pauseMenuButton").onclick = openMenu;
+document.getElementById("pauseMenuButton").onclick = () => {
+    audioClick();
+    openMenu();
+};
 
-document.getElementById("resumeButton").onclick = resumeGame;
+document.getElementById("resumeButton").onclick = () => {
+    audioClick();
+    resumeGame();
+};
 
 /* =========================================================
    MENU UI
@@ -313,10 +359,17 @@ function purchase(type, cost, max) {
 
     showToast("PURCHASED ✓");
 
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.purchase();
+    }
+
     vibrate(25);
 }
 
 document.getElementById("buyLife").onclick = () => {
+    audioClick();
+
     const cost =
         80 + (saveData.lives - 1) * 100;
 
@@ -324,6 +377,8 @@ document.getElementById("buyLife").onclick = () => {
 };
 
 document.getElementById("buyWeapon").onclick = () => {
+
+    audioClick();
 
     if (saveData.weapon) {
         showToast("ALREADY UNLOCKED");
@@ -342,10 +397,18 @@ document.getElementById("buyWeapon").onclick = () => {
     updateMenuUI();
 
     showToast("WEAPON UNLOCKED 🔫");
+
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.purchase();
+    }
+
     vibrate(40);
 };
 
 document.getElementById("buyDamage").onclick = () => {
+
+    audioClick();
 
     if (!saveData.weapon) {
         showToast("UNLOCK WEAPON FIRST");
@@ -360,6 +423,8 @@ document.getElementById("buyDamage").onclick = () => {
 
 document.getElementById("buyShield").onclick = () => {
 
+    audioClick();
+
     const cost =
         90 + (saveData.shield - 1) * 70;
 
@@ -367,6 +432,8 @@ document.getElementById("buyShield").onclick = () => {
 };
 
 document.getElementById("buyEmp").onclick = () => {
+
+    audioClick();
 
     const cost =
         100 + (saveData.emp - 1) * 80;
@@ -392,21 +459,54 @@ function updateSettingsUI() {
 }
 
 document.getElementById("musicToggle").onclick = () => {
+
+    initAudio();
+
     saveData.music = !saveData.music;
+
     save();
+
+    if (typeof AudioFX !== "undefined") {
+        AudioFX.setMusic(saveData.music);
+    }
+
     updateSettingsUI();
+
+    if (saveData.sound) {
+        AudioFX.click();
+    }
 };
 
 document.getElementById("soundToggle").onclick = () => {
+
+    initAudio();
+
     saveData.sound = !saveData.sound;
+
     save();
+
+    if (typeof AudioFX !== "undefined") {
+        AudioFX.setSound(saveData.sound);
+    }
+
     updateSettingsUI();
+
+    if (saveData.sound) {
+        AudioFX.click();
+    }
 };
 
 document.getElementById("vibrationToggle").onclick = () => {
+
+    initAudio();
+
     saveData.vibration = !saveData.vibration;
+
     save();
+
     updateSettingsUI();
+
+    audioClick();
 };
 
 /* =========================================================
@@ -432,6 +532,8 @@ function updateDailyUI() {
 
 document.getElementById("claimDaily").onclick = () => {
 
+    audioClick();
+
     const now = Date.now();
 
     if (
@@ -450,6 +552,11 @@ document.getElementById("claimDaily").onclick = () => {
     updateMenuUI();
 
     showToast("+25 💎 DAILY BONUS");
+
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.reward();
+    }
 };
 
 /* =========================================================
@@ -457,6 +564,15 @@ document.getElementById("claimDaily").onclick = () => {
 ========================================================= */
 
 function startGame() {
+
+    initAudio();
+
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.music
+    ) {
+        AudioFX.setMusic(true);
+    }
 
     showScreen(menu);
 
@@ -521,7 +637,10 @@ function startGame() {
    PAUSE
 ========================================================= */
 
-document.getElementById("pauseButton").onclick = togglePause;
+document.getElementById("pauseButton").onclick = () => {
+    audioClick();
+    togglePause();
+};
 
 function togglePause() {
 
@@ -576,6 +695,7 @@ canvas.addEventListener("pointermove", e => {
 });
 
 canvas.addEventListener("pointerdown", e => {
+    initAudio();
     setPlayerTarget(e.clientX, e.clientY);
 });
 
@@ -915,6 +1035,11 @@ function collectCrystal(i) {
         8
     );
 
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.crystal();
+    }
+
     save();
 }
 
@@ -953,6 +1078,11 @@ function activateBuff(type) {
 
     activeBuffs[type] =
         buffInfo[type].duration;
+
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.buff();
+    }
 
     showToast(
         `${buffInfo[type].icon} ${type}`
@@ -1103,6 +1233,11 @@ function shoot() {
 
     if (!target) return;
 
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.shoot();
+    }
+
     projectiles.push({
         x: player.x,
         y: player.y,
@@ -1189,8 +1324,15 @@ function updateWeapon(dt) {
                     obstacles.indexOf(p.target);
 
                 if (index >= 0) {
+
                     obstacles.splice(index, 1);
+
                     score += 30 * multiplier;
+
+                    if (typeof AudioFX !== "undefined") {
+                        initAudio();
+                        AudioFX.explosion();
+                    }
                 }
             }
 
@@ -1242,6 +1384,11 @@ function useShield() {
         25
     );
 
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.shield();
+    }
+
     vibrate(50);
 }
 
@@ -1269,6 +1416,11 @@ function useEMP() {
     const radius =
         150 +
         saveData.emp * 50;
+
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.emp();
+    }
 
     for (
         let i = obstacles.length - 1;
@@ -1307,7 +1459,6 @@ function useEMP() {
 
 /* =========================================================
    EVENT SYSTEM
-   НЕ ЛОМАЕТ СТАРЫЕ СОБЫТИЯ
 ========================================================= */
 
 function triggerRandomEvent() {
@@ -1318,11 +1469,6 @@ function triggerRandomEvent() {
 
     let available = [];
 
-    /*
-        0–60:
-        Только лёгкие события.
-    */
-
     if (gameTime < 60) {
 
         available = [
@@ -1331,11 +1477,6 @@ function triggerRandomEvent() {
             "laserSweep"
         ];
     }
-
-    /*
-        60–120:
-        Добавляем быстрые лазеры.
-    */
 
     else if (gameTime < 120) {
 
@@ -1348,11 +1489,6 @@ function triggerRandomEvent() {
         ];
     }
 
-    /*
-        120–180:
-        Полный набор одиночных событий.
-    */
-
     else if (gameTime < 180) {
 
         available = [
@@ -1363,11 +1499,6 @@ function triggerRandomEvent() {
             "electric"
         ];
     }
-
-    /*
-        180–300:
-        Появляются комбинации.
-    */
 
     else if (gameTime < 300) {
 
@@ -1382,11 +1513,6 @@ function triggerRandomEvent() {
             "comboElectricMeteor"
         ];
     }
-
-    /*
-        300+:
-        Endless Chaos.
-    */
 
     else {
 
@@ -1470,6 +1596,12 @@ function laserSweep() {
             return;
         }
 
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.laser();
+        }
+
         eventObjects.push({
             type: "laserSweep",
 
@@ -1520,6 +1652,12 @@ function laserStrike() {
             return;
         }
 
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.laser();
+        }
+
         eventObjects.push({
             type: "laserStrike",
 
@@ -1555,6 +1693,12 @@ function spawnHunter() {
         if (!running || gameOver) {
             eventBusy = false;
             return;
+        }
+
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.hunter();
         }
 
         eventObjects.push({
@@ -1605,6 +1749,12 @@ function meteorRain() {
         if (!running || gameOver) {
             eventBusy = false;
             return;
+        }
+
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.meteor();
         }
 
         const amount =
@@ -1674,6 +1824,11 @@ function electricField() {
             return;
         }
 
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+        }
+
         eventObjects.push({
             type: "electric",
 
@@ -1701,7 +1856,7 @@ function electricField() {
 }
 
 /* =========================================================
-   NEW: LASER + METEOR
+   LASER + METEOR
 ========================================================= */
 
 function comboLaserMeteor() {
@@ -1716,6 +1871,13 @@ function comboLaserMeteor() {
         if (!running || gameOver) {
             eventBusy = false;
             return;
+        }
+
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.laser();
+            AudioFX.meteor();
         }
 
         const laserY =
@@ -1774,7 +1936,7 @@ function comboLaserMeteor() {
 }
 
 /* =========================================================
-   NEW: HUNTER + LASER
+   HUNTER + LASER
 ========================================================= */
 
 function comboHunterLaser() {
@@ -1789,6 +1951,13 @@ function comboHunterLaser() {
         if (!running || gameOver) {
             eventBusy = false;
             return;
+        }
+
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.hunter();
+            AudioFX.laser();
         }
 
         eventObjects.push({
@@ -1845,7 +2014,7 @@ function comboHunterLaser() {
 }
 
 /* =========================================================
-   NEW: ELECTRIC + METEORS
+   ELECTRIC + METEORS
 ========================================================= */
 
 function comboElectricMeteor() {
@@ -1860,6 +2029,12 @@ function comboElectricMeteor() {
         if (!running || gameOver) {
             eventBusy = false;
             return;
+        }
+
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.meteor();
         }
 
         eventObjects.push({
@@ -1914,7 +2089,7 @@ function comboElectricMeteor() {
 }
 
 /* =========================================================
-   NEW: TRIPLE CHAOS
+   TRIPLE CHAOS
 ========================================================= */
 
 function comboTriple() {
@@ -1931,9 +2106,13 @@ function comboTriple() {
             return;
         }
 
-        /*
-            Electric field
-        */
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.laser();
+            AudioFX.hunter();
+            AudioFX.meteor();
+        }
 
         eventObjects.push({
             type: "electric",
@@ -1949,10 +2128,6 @@ function comboTriple() {
 
             duration: 6
         });
-
-        /*
-            Hunter
-        */
 
         eventObjects.push({
             type: "hunter",
@@ -1980,10 +2155,6 @@ function comboTriple() {
             pulse: 0
         });
 
-        /*
-            Laser
-        */
-
         eventObjects.push({
             type: "laserStrike",
 
@@ -2002,10 +2173,6 @@ function comboTriple() {
             thickness: 32
         });
 
-        /*
-            Небольшая задержка метеоров
-        */
-
         for (let i = 0; i < 6; i++) {
 
             setTimeout(() => {
@@ -2016,7 +2183,8 @@ function comboTriple() {
                     type: "meteor",
 
                     x:
-                        Math.random() * W,
+                        Math.random() *
+                        W,
 
                     y: -50,
 
@@ -2098,6 +2266,11 @@ function crystalRush() {
             return;
         }
 
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+        }
+
         for (let i = 0; i < 24; i++) {
 
             eventObjects.push({
@@ -2147,6 +2320,14 @@ function redAlert() {
         if (!running || gameOver) {
             eventBusy = false;
             return;
+        }
+
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+            AudioFX.meteor();
+            AudioFX.hunter();
+            AudioFX.laser();
         }
 
         for (let i = 0; i < 8; i++) {
@@ -2244,6 +2425,11 @@ function safeZone() {
             return;
         }
 
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
+        }
+
         eventObjects.push({
             type: "safeZone",
 
@@ -2260,10 +2446,6 @@ function safeZone() {
 
             duration: 8
         });
-
-        /*
-            На время Safe Zone даём щит.
-        */
 
         activateBuff("SHIELD");
 
@@ -2290,6 +2472,11 @@ function overcharge() {
         if (!running || gameOver) {
             eventBusy = false;
             return;
+        }
+
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.eventStart();
         }
 
         activateBuff("DOUBLE");
@@ -2320,14 +2507,6 @@ function updateEvents(dt) {
 
     eventTimer -= dt;
 
-    /*
-        Чем дольше играем —
-        тем чаще происходят события.
-
-        При этом не превращаем игру
-        в мясо сразу после старта.
-    */
-
     let nextEventTime;
 
     if (gameTime < 60) {
@@ -2356,11 +2535,6 @@ function updateEvents(dt) {
 
     } else {
 
-        /*
-            После 5 минут:
-            5–8 секунд между попытками события.
-        */
-
         nextEventTime =
             Math.max(
                 5,
@@ -2388,15 +2562,7 @@ function updateEvents(dt) {
 
         const o = eventObjects[i];
 
-        /*
-            Баффы обрабатываются отдельно.
-        */
-
         if (o.type === "buff") continue;
-
-        /* =========================================
-           LASER SWEEP
-        ========================================= */
 
         if (o.type === "laserSweep") {
 
@@ -2426,10 +2592,6 @@ function updateEvents(dt) {
             }
         }
 
-        /* =========================================
-           LASER STRIKE
-        ========================================= */
-
         if (o.type === "laserStrike") {
 
             o.timer += dt;
@@ -2454,10 +2616,6 @@ function updateEvents(dt) {
                 eventObjects.splice(i, 1);
             }
         }
-
-        /* =========================================
-           HUNTER
-        ========================================= */
 
         if (o.type === "hunter") {
 
@@ -2514,10 +2672,6 @@ function updateEvents(dt) {
             }
         }
 
-        /* =========================================
-           METEOR
-        ========================================= */
-
         if (o.type === "meteor") {
 
             o.x +=
@@ -2550,10 +2704,6 @@ function updateEvents(dt) {
             }
         }
 
-        /* =========================================
-           ELECTRIC FIELD
-        ========================================= */
-
         if (o.type === "electric") {
 
             o.timer += dt;
@@ -2578,10 +2728,6 @@ function updateEvents(dt) {
                 eventObjects.splice(i, 1);
             }
         }
-
-        /* =========================================
-           CRYSTAL RUSH
-        ========================================= */
 
         if (o.type === "rushCrystal") {
 
@@ -2611,6 +2757,11 @@ function updateEvents(dt) {
                     10
                 );
 
+                if (typeof AudioFX !== "undefined") {
+                    initAudio();
+                    AudioFX.crystal();
+                }
+
                 eventObjects.splice(i, 1);
 
                 save();
@@ -2623,18 +2774,9 @@ function updateEvents(dt) {
             }
         }
 
-        /* =========================================
-           SAFE ZONE
-        ========================================= */
-
         if (o.type === "safeZone") {
 
             o.timer += dt;
-
-            /*
-                Внутри зоны препятствия
-                не наносят урон.
-            */
 
             if (o.timer >= o.duration) {
                 eventObjects.splice(i, 1);
@@ -2644,7 +2786,7 @@ function updateEvents(dt) {
 }
 
 /* =========================================================
-   SAFE ZONE COLLISION HELPER
+   SAFE ZONE
 ========================================================= */
 
 function playerInsideSafeZone() {
@@ -2677,6 +2819,11 @@ let warningTimeout;
 
 function showWarning(title, text) {
 
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.warning();
+    }
+
     clearTimeout(warningTimeout);
 
     eventWarningTitle.textContent = title;
@@ -2706,6 +2853,11 @@ function damagePlayer() {
     }
 
     player.lives--;
+
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.damage();
+    }
 
     player.invincible = 1.5;
 
@@ -2794,11 +2946,6 @@ function updateBuffSpawning(dt) {
     buffSpawnTimer -= dt;
 
     if (buffSpawnTimer <= 0) {
-
-        /*
-            После 3 минут баффы
-            появляются немного чаще.
-        */
 
         buffSpawnTimer =
             gameTime >= 300
@@ -3640,10 +3787,6 @@ function drawEvents() {
             ctx.restore();
         }
 
-        /* =========================================
-           CRYSTAL RUSH
-        ========================================= */
-
         if (o.type === "rushCrystal") {
 
             ctx.save();
@@ -3696,10 +3839,6 @@ function drawEvents() {
 
             ctx.restore();
         }
-
-        /* =========================================
-           SAFE ZONE
-        ========================================= */
 
         if (o.type === "safeZone") {
 
@@ -3872,6 +4011,11 @@ function endGame() {
     gameOver = true;
     running = false;
 
+    if (typeof AudioFX !== "undefined") {
+        initAudio();
+        AudioFX.death();
+    }
+
     const finalScore =
         Math.floor(score);
 
@@ -3921,6 +4065,8 @@ function endGame() {
 
 document.getElementById("reviveButton").onclick = () => {
 
+    audioClick();
+
     if (reviveUsed || !gameOver) {
         showToast("REVIVE ALREADY USED");
         return;
@@ -3954,6 +4100,11 @@ document.getElementById("reviveButton").onclick = () => {
 
         player.shield = 3;
 
+        if (typeof AudioFX !== "undefined") {
+            initAudio();
+            AudioFX.revive();
+        }
+
         showScreen(menu);
 
         menu.classList.remove("active");
@@ -3972,8 +4123,10 @@ document.getElementById("reviveButton").onclick = () => {
     }, 1200);
 };
 
-document.getElementById("restartButton").onclick =
-    startGame;
+document.getElementById("restartButton").onclick = () => {
+    audioClick();
+    startGame();
+};
 
 /* =========================================================
    MAIN LOOP
@@ -4143,6 +4296,11 @@ function draw() {
                 score +=
                     25 *
                     multiplier;
+
+                if (typeof AudioFX !== "undefined") {
+                    initAudio();
+                    AudioFX.explosion();
+                }
             }
         }
     }
@@ -4156,11 +4314,17 @@ function draw() {
 
 document.getElementById(
     "shieldButton"
-).onclick = useShield;
+).onclick = () => {
+    audioClick();
+    useShield();
+};
 
 document.getElementById(
     "empButton"
-).onclick = useEMP;
+).onclick = () => {
+    audioClick();
+    useEMP();
+};
 
 /* =========================================================
    INITIALIZATION
