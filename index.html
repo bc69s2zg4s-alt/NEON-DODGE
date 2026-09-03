@@ -1194,6 +1194,55 @@
 
     }
 
+    /* =========================
+   DEEP LINK CALLBACK
+   ========================= */
+
+if (window.Capacitor) {
+    window.Capacitor.Plugins.App?.addListener("appUrlOpen", async ({ url }) => {
+        try {
+            if (!url || !url.startsWith("neondodge://auth")) return;
+
+            const parsed = new URL(url);
+
+            const code = parsed.searchParams.get("code");
+
+            if (code) {
+                const { error } =
+                    await client.auth.exchangeCodeForSession(code);
+
+                if (error) {
+                    console.error("OAuth callback error:", error);
+                    return;
+                }
+            }
+
+            const hash = new URLSearchParams(
+                (parsed.hash || "").replace(/^#/, "")
+            );
+
+            const accessToken = hash.get("access_token");
+            const refreshToken = hash.get("refresh_token");
+
+            if (accessToken && refreshToken) {
+                const { error } =
+                    await client.auth.setSession({
+                        access_token: accessToken,
+                        refresh_token: refreshToken
+                    });
+
+                if (error) {
+                    console.error("Session error:", error);
+                }
+            }
+
+            await updateAuthUI();
+
+        } catch (e) {
+            console.error("Deep link error:", e);
+        }
+    });
+}
 
     /* =========================
        UPDATE UI
