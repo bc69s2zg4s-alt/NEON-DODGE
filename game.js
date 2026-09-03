@@ -75,17 +75,52 @@ function save() {
 ========================================================= */
 
 function initAudio() {
-    if (typeof AudioFX === "undefined") return;
 
-    AudioFX.init();
-    AudioFX.resume();
+    if (typeof AudioFX === "undefined") {
+        return false;
+    }
+
+    try {
+        AudioFX.init();
+        AudioFX.resume();
+
+        return true;
+
+    } catch (error) {
+
+        console.warn(
+            "Audio init error:",
+            error
+        );
+
+        return false;
+    }
 }
 
 function audioClick() {
-    if (typeof AudioFX === "undefined") return;
 
-    initAudio();
-    AudioFX.click();
+    if (
+        typeof AudioFX === "undefined" ||
+        !saveData.sound
+    ) {
+        return;
+    }
+
+    if (!initAudio()) {
+        return;
+    }
+
+    try {
+
+        AudioFX.click();
+
+    } catch (error) {
+
+        console.warn(
+            "Audio click error:",
+            error
+        );
+    }
 }
 
 /* =========================================================
@@ -166,6 +201,7 @@ const toast = document.getElementById("toast");
 ========================================================= */
 
 function showScreen(screen) {
+
     [
         menu,
         shopPanel,
@@ -180,69 +216,111 @@ function showScreen(screen) {
 }
 
 function openMenu() {
+
     running = false;
     paused = false;
+
     hud.style.display = "none";
+
     showScreen(menu);
+
     updateMenuUI();
 }
 
+/* =========================================================
+   PLAY
+========================================================= */
+
 document.getElementById("playButton").onclick = () => {
+
+    if (typeof AudioFX === "undefined") {
+
+        alert(
+            "Ошибка: audio.js не загрузился"
+        );
+
+        return;
+    }
+
     initAudio();
 
-    if (
-        typeof AudioFX !== "undefined" &&
-        saveData.music
-    ) {
+    if (saveData.music) {
         AudioFX.setMusic(true);
     }
 
-    audioClick();
+    if (saveData.sound) {
+        AudioFX.click();
+    }
+
     startGame();
 };
 
+/* =========================================================
+   MENU BUTTONS
+========================================================= */
+
 document.getElementById("shopButton").onclick = () => {
+
     audioClick();
+
     updateMenuUI();
+
     showScreen(shopPanel);
 };
 
 document.getElementById("settingsButton").onclick = () => {
+
     audioClick();
+
     updateSettingsUI();
+
     showScreen(settingsPanel);
 };
 
 document.getElementById("feedbackButton").onclick = () => {
+
     audioClick();
+
     showScreen(feedbackPanel);
 };
 
 document.getElementById("dailyButton").onclick = () => {
+
     audioClick();
+
     updateDailyUI();
+
     showScreen(dailyPanel);
 };
 
 document.querySelectorAll("[data-close]").forEach(btn => {
+
     btn.onclick = () => {
+
         audioClick();
+
         openMenu();
     };
 });
 
 document.getElementById("menuButton").onclick = () => {
+
     audioClick();
+
     openMenu();
 };
 
 document.getElementById("pauseMenuButton").onclick = () => {
+
     audioClick();
+
     openMenu();
 };
 
 document.getElementById("resumeButton").onclick = () => {
+
     audioClick();
+
     resumeGame();
 };
 
@@ -282,11 +360,20 @@ function updateMenuUI() {
     const empCost =
         100 + (saveData.emp - 1) * 80;
 
-    const lifeBtn = document.getElementById("buyLife");
-    const weaponBtn = document.getElementById("buyWeapon");
-    const damageBtn = document.getElementById("buyDamage");
-    const shieldBtn = document.getElementById("buyShield");
-    const empBtn = document.getElementById("buyEmp");
+    const lifeBtn =
+        document.getElementById("buyLife");
+
+    const weaponBtn =
+        document.getElementById("buyWeapon");
+
+    const damageBtn =
+        document.getElementById("buyDamage");
+
+    const shieldBtn =
+        document.getElementById("buyShield");
+
+    const empBtn =
+        document.getElementById("buyEmp");
 
     lifeBtn.textContent =
         saveData.lives >= 3
@@ -342,25 +429,36 @@ function updateMenuUI() {
 function purchase(type, cost, max) {
 
     if (saveData[type] >= max) {
+
         showToast("MAX LEVEL");
+
         return;
     }
 
     if (saveData.crystals < cost) {
+
         showToast("NOT ENOUGH 💎");
+
         return;
     }
 
     saveData.crystals -= cost;
+
     saveData[type]++;
 
     save();
+
     updateMenuUI();
 
     showToast("PURCHASED ✓");
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.purchase();
     }
 
@@ -368,12 +466,17 @@ function purchase(type, cost, max) {
 }
 
 document.getElementById("buyLife").onclick = () => {
+
     audioClick();
 
     const cost =
         80 + (saveData.lives - 1) * 100;
 
-    purchase("lives", cost, 3);
+    purchase(
+        "lives",
+        cost,
+        3
+    );
 };
 
 document.getElementById("buyWeapon").onclick = () => {
@@ -381,25 +484,36 @@ document.getElementById("buyWeapon").onclick = () => {
     audioClick();
 
     if (saveData.weapon) {
+
         showToast("ALREADY UNLOCKED");
+
         return;
     }
 
     if (saveData.crystals < 150) {
+
         showToast("NOT ENOUGH 💎");
+
         return;
     }
 
     saveData.crystals -= 150;
+
     saveData.weapon = 1;
 
     save();
+
     updateMenuUI();
 
     showToast("WEAPON UNLOCKED 🔫");
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.purchase();
     }
 
@@ -411,14 +525,20 @@ document.getElementById("buyDamage").onclick = () => {
     audioClick();
 
     if (!saveData.weapon) {
+
         showToast("UNLOCK WEAPON FIRST");
+
         return;
     }
 
     const cost =
         100 + (saveData.damage - 1) * 80;
 
-    purchase("damage", cost, 3);
+    purchase(
+        "damage",
+        cost,
+        3
+    );
 };
 
 document.getElementById("buyShield").onclick = () => {
@@ -428,7 +548,11 @@ document.getElementById("buyShield").onclick = () => {
     const cost =
         90 + (saveData.shield - 1) * 70;
 
-    purchase("shield", cost, 3);
+    purchase(
+        "shield",
+        cost,
+        3
+    );
 };
 
 document.getElementById("buyEmp").onclick = () => {
@@ -438,7 +562,11 @@ document.getElementById("buyEmp").onclick = () => {
     const cost =
         100 + (saveData.emp - 1) * 80;
 
-    purchase("emp", cost, 3);
+    purchase(
+        "emp",
+        cost,
+        3
+    );
 };
 
 /* =========================================================
@@ -447,32 +575,54 @@ document.getElementById("buyEmp").onclick = () => {
 
 function updateSettingsUI() {
 
-    const music = document.getElementById("musicToggle");
-    const sound = document.getElementById("soundToggle");
+    const music =
+        document.getElementById("musicToggle");
+
+    const sound =
+        document.getElementById("soundToggle");
+
     const vibration =
         document.getElementById("vibrationToggle");
 
-    music.textContent = saveData.music ? "ON" : "OFF";
-    sound.textContent = saveData.sound ? "ON" : "OFF";
+    music.textContent =
+        saveData.music
+            ? "ON"
+            : "OFF";
+
+    sound.textContent =
+        saveData.sound
+            ? "ON"
+            : "OFF";
+
     vibration.textContent =
-        saveData.vibration ? "ON" : "OFF";
+        saveData.vibration
+            ? "ON"
+            : "OFF";
 }
 
 document.getElementById("musicToggle").onclick = () => {
 
     initAudio();
 
-    saveData.music = !saveData.music;
+    saveData.music =
+        !saveData.music;
 
     save();
 
     if (typeof AudioFX !== "undefined") {
-        AudioFX.setMusic(saveData.music);
+
+        AudioFX.setMusic(
+            saveData.music
+        );
     }
 
     updateSettingsUI();
 
-    if (saveData.sound) {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         AudioFX.click();
     }
 };
@@ -481,17 +631,25 @@ document.getElementById("soundToggle").onclick = () => {
 
     initAudio();
 
-    saveData.sound = !saveData.sound;
+    saveData.sound =
+        !saveData.sound;
 
     save();
 
     if (typeof AudioFX !== "undefined") {
-        AudioFX.setSound(saveData.sound);
+
+        AudioFX.setSound(
+            saveData.sound
+        );
     }
 
     updateSettingsUI();
 
-    if (saveData.sound) {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         AudioFX.click();
     }
 };
@@ -500,7 +658,8 @@ document.getElementById("vibrationToggle").onclick = () => {
 
     initAudio();
 
-    saveData.vibration = !saveData.vibration;
+    saveData.vibration =
+        !saveData.vibration;
 
     save();
 
@@ -516,15 +675,19 @@ document.getElementById("vibrationToggle").onclick = () => {
 function updateDailyUI() {
 
     const now = Date.now();
+
     const day = 86400000;
 
     const available =
         now - saveData.lastDaily >= day;
 
-    document.getElementById("claimDaily").disabled =
-        !available;
+    document.getElementById(
+        "claimDaily"
+    ).disabled = !available;
 
-    document.getElementById("dailyStatus").textContent =
+    document.getElementById(
+        "dailyStatus"
+    ).textContent =
         available
             ? "BONUS READY!"
             : "COME BACK TOMORROW";
@@ -544,17 +707,26 @@ document.getElementById("claimDaily").onclick = () => {
     }
 
     saveData.crystals += 25;
+
     saveData.lastDaily = now;
 
     save();
 
     updateDailyUI();
+
     updateMenuUI();
 
-    showToast("+25 💎 DAILY BONUS");
+    showToast(
+        "+25 💎 DAILY BONUS"
+    );
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.reward();
     }
 };
@@ -565,55 +737,72 @@ document.getElementById("claimDaily").onclick = () => {
 
 function startGame() {
 
-    initAudio();
+    /*
+        ВАЖНО:
+        Здесь больше НЕТ AudioFX.setMusic(true).
 
-    if (
-        typeof AudioFX !== "undefined" &&
-        saveData.music
-    ) {
-        AudioFX.setMusic(true);
-    }
+        Музыка запускается только после
+        реального нажатия Play.
+    */
+
+    initAudio();
 
     showScreen(menu);
 
     menu.classList.remove("active");
+
     hud.style.display = "block";
 
     running = true;
+
     paused = false;
+
     gameOver = false;
+
     reviveUsed = false;
 
     score = 0;
+
     gameTime = 0;
+
     multiplier = 1;
 
     obstacles = [];
+
     particles = [];
+
     projectiles = [];
+
     crystalsOnMap = [];
+
     eventObjects = [];
 
     activeBuffs = {};
 
     spawnTimer = 0;
+
     crystalTimer = 0;
 
     eventTimer = 6;
 
     shieldCooldown = 0;
+
     empCooldown = 0;
 
     eventBusy = false;
 
     weaponTimer = 0;
+
     buffSpawnTimer = 8;
 
     player = {
+
         x: W / 2,
+
         y: H * .72,
 
         targetX: W / 2,
+
         targetY: H * .72,
 
         radius: 15,
@@ -621,6 +810,7 @@ function startGame() {
         lives: saveData.lives,
 
         invincible: 0,
+
         shield: 0,
 
         trail: []
@@ -628,7 +818,8 @@ function startGame() {
 
     updateHUD();
 
-    lastTime = performance.now();
+    lastTime =
+        performance.now();
 
     requestAnimationFrame(loop);
 }
@@ -638,7 +829,9 @@ function startGame() {
 ========================================================= */
 
 document.getElementById("pauseButton").onclick = () => {
+
     audioClick();
+
     togglePause();
 };
 
@@ -649,10 +842,15 @@ function togglePause() {
     paused = !paused;
 
     if (paused) {
+
         showScreen(pauseScreen);
+
     } else {
+
         showScreen(menu);
+
         menu.classList.remove("active");
+
         pauseScreen.classList.add("active");
     }
 }
@@ -664,9 +862,11 @@ function resumeGame() {
     paused = false;
 
     showScreen(menu);
+
     menu.classList.remove("active");
 
-    lastTime = performance.now();
+    lastTime =
+        performance.now();
 
     requestAnimationFrame(loop);
 }
@@ -677,57 +877,105 @@ function resumeGame() {
 
 function setPlayerTarget(x, y) {
 
-    if (!running || paused || !player) return;
+    if (
+        !running ||
+        paused ||
+        !player
+    ) {
+        return;
+    }
 
-    player.targetX = Math.max(
-        player.radius,
-        Math.min(W - player.radius, x)
-    );
+    player.targetX =
+        Math.max(
+            player.radius,
+            Math.min(
+                W - player.radius,
+                x
+            )
+        );
 
-    player.targetY = Math.max(
-        80,
-        Math.min(H - 80, y)
-    );
+    player.targetY =
+        Math.max(
+            80,
+            Math.min(
+                H - 80,
+                y
+            )
+        );
 }
 
-canvas.addEventListener("pointermove", e => {
-    setPlayerTarget(e.clientX, e.clientY);
-});
+canvas.addEventListener(
+    "pointermove",
+    e => {
 
-canvas.addEventListener("pointerdown", e => {
-    initAudio();
-    setPlayerTarget(e.clientX, e.clientY);
-});
+        setPlayerTarget(
+            e.clientX,
+            e.clientY
+        );
+    }
+);
+
+canvas.addEventListener(
+    "pointerdown",
+    e => {
+
+        initAudio();
+
+        setPlayerTarget(
+            e.clientX,
+            e.clientY
+        );
+    }
+);
 
 let keys = {};
 
-window.addEventListener("keydown", e => {
+window.addEventListener(
+    "keydown",
+    e => {
 
-    keys[e.key.toLowerCase()] = true;
+        keys[
+            e.key.toLowerCase()
+        ] = true;
 
-    if (
-        e.key === "Escape" ||
-        e.key.toLowerCase() === "p"
-    ) {
-        togglePause();
+        if (
+            e.key === "Escape" ||
+            e.key.toLowerCase() === "p"
+        ) {
+
+            togglePause();
+        }
+
+        if (e.key === " ") {
+
+            shoot();
+        }
+
+        if (
+            e.key.toLowerCase() === "e"
+        ) {
+
+            useEMP();
+        }
+
+        if (
+            e.key.toLowerCase() === "q"
+        ) {
+
+            useShield();
+        }
     }
+);
 
-    if (e.key === " ") {
-        shoot();
+window.addEventListener(
+    "keyup",
+    e => {
+
+        keys[
+            e.key.toLowerCase()
+        ] = false;
     }
-
-    if (e.key.toLowerCase() === "e") {
-        useEMP();
-    }
-
-    if (e.key.toLowerCase() === "q") {
-        useShield();
-    }
-});
-
-window.addEventListener("keyup", e => {
-    keys[e.key.toLowerCase()] = false;
-});
+);
 
 /* =========================================================
    PLAYER MOVEMENT
@@ -738,31 +986,58 @@ function updatePlayer(dt) {
     let dx = 0;
     let dy = 0;
 
-    if (keys["arrowleft"] || keys["a"]) dx--;
-    if (keys["arrowright"] || keys["d"]) dx++;
-    if (keys["arrowup"] || keys["w"]) dy--;
-    if (keys["arrowdown"] || keys["s"]) dy++;
+    if (
+        keys["arrowleft"] ||
+        keys["a"]
+    ) dx--;
+
+    if (
+        keys["arrowright"] ||
+        keys["d"]
+    ) dx++;
+
+    if (
+        keys["arrowup"] ||
+        keys["w"]
+    ) dy--;
+
+    if (
+        keys["arrowdown"] ||
+        keys["s"]
+    ) dy++;
 
     if (dx || dy) {
 
-        const len = Math.hypot(dx, dy);
+        const len =
+            Math.hypot(dx, dy);
 
         dx /= len;
         dy /= len;
 
-        player.targetX += dx * 420 * dt;
-        player.targetY += dy * 420 * dt;
+        player.targetX +=
+            dx * 420 * dt;
+
+        player.targetY +=
+            dy * 420 * dt;
     }
 
-    player.targetX = Math.max(
-        player.radius,
-        Math.min(W - player.radius, player.targetX)
-    );
+    player.targetX =
+        Math.max(
+            player.radius,
+            Math.min(
+                W - player.radius,
+                player.targetX
+            )
+        );
 
-    player.targetY = Math.max(
-        80,
-        Math.min(H - 70, player.targetY)
-    );
+    player.targetY =
+        Math.max(
+            80,
+            Math.min(
+                H - 70,
+                player.targetY
+            )
+        );
 
     const speed =
         hasBuff("SLOW")
@@ -770,12 +1045,24 @@ function updatePlayer(dt) {
             : 9;
 
     player.x +=
-        (player.targetX - player.x) *
-        Math.min(1, speed * dt);
+        (
+            player.targetX -
+            player.x
+        ) *
+        Math.min(
+            1,
+            speed * dt
+        );
 
     player.y +=
-        (player.targetY - player.y) *
-        Math.min(1, speed * dt);
+        (
+            player.targetY -
+            player.y
+        ) *
+        Math.min(
+            1,
+            speed * dt
+        );
 
     player.trail.push({
         x: player.x,
@@ -783,27 +1070,41 @@ function updatePlayer(dt) {
         life: 1
     });
 
-    if (player.trail.length > 16) {
+    if (
+        player.trail.length >
+        16
+    ) {
         player.trail.shift();
     }
 
     for (const p of player.trail) {
+
         p.life -= dt * 4;
     }
 
-    if (player.invincible > 0) {
+    if (
+        player.invincible > 0
+    ) {
         player.invincible -= dt;
     }
 
-    if (player.shield > 0) {
+    if (
+        player.shield > 0
+    ) {
         player.shield -= dt;
     }
 
     shieldCooldown =
-        Math.max(0, shieldCooldown - dt);
+        Math.max(
+            0,
+            shieldCooldown - dt
+        );
 
     empCooldown =
-        Math.max(0, empCooldown - dt);
+        Math.max(
+            0,
+            empCooldown - dt
+        );
 }
 
 /* =========================================================
@@ -813,12 +1114,19 @@ function updatePlayer(dt) {
 function difficulty() {
 
     const timeFactor =
-        Math.min(gameTime / 150, 1);
+        Math.min(
+            gameTime / 150,
+            1
+        );
 
     const endlessFactor =
-        Math.max(0, gameTime - 150) / 120;
+        Math.max(
+            0,
+            gameTime - 150
+        ) / 120;
 
     return {
+
         speed:
             170 +
             timeFactor * 150 +
@@ -838,7 +1146,9 @@ function difficulty() {
 
         amount:
             1 +
-            Math.floor(gameTime / 40)
+            Math.floor(
+                gameTime / 40
+            )
     };
 }
 
@@ -848,43 +1158,77 @@ function difficulty() {
 
 function spawnObstacle() {
 
-    const d = difficulty();
+    const d =
+        difficulty();
 
     const size =
-        d.size * (.75 + Math.random() * .8);
+        d.size *
+        (
+            .75 +
+            Math.random() * .8
+        );
 
-    const typeRoll = Math.random();
+    const typeRoll =
+        Math.random();
 
-    let type = "normal";
+    let type =
+        "normal";
 
-    if (gameTime > 25 && typeRoll < .18) {
+    if (
+        gameTime > 25 &&
+        typeRoll < .18
+    ) {
         type = "fast";
     }
 
-    if (gameTime > 55 && typeRoll < .12) {
+    if (
+        gameTime > 55 &&
+        typeRoll < .12
+    ) {
         type = "zigzag";
     }
 
     obstacles.push({
-        x: size + Math.random() * (W - size * 2),
-        y: -size - 20,
+
+        x:
+            size +
+            Math.random() *
+            (
+                W -
+                size * 2
+            ),
+
+        y:
+            -size - 20,
 
         size,
 
         speed:
             d.speed *
-            (type === "fast" ? 1.35 : 1),
+            (
+                type === "fast"
+                    ? 1.35
+                    : 1
+            ),
 
         type,
 
-        angle: Math.random() * Math.PI * 2,
+        angle:
+            Math.random() *
+            Math.PI * 2,
 
         rotation:
-            (Math.random() - .5) * 3,
+            (
+                Math.random() -
+                .5
+            ) * 3,
 
         hp:
             saveData.weapon
-                ? 1 + Math.floor(gameTime / 65)
+                ? 1 +
+                  Math.floor(
+                      gameTime / 65
+                  )
                 : 1,
 
         life: 1
@@ -893,11 +1237,14 @@ function spawnObstacle() {
 
 function updateObstacles(dt) {
 
-    const d = difficulty();
+    const d =
+        difficulty();
 
     spawnTimer += dt;
 
-    if (spawnTimer >= d.spawn) {
+    if (
+        spawnTimer >= d.spawn
+    ) {
 
         spawnTimer = 0;
 
@@ -907,32 +1254,60 @@ function updateObstacles(dt) {
                 4
             );
 
-        for (let i = 0; i < count; i++) {
+        for (
+            let i = 0;
+            i < count;
+            i++
+        ) {
+
             spawnObstacle();
         }
     }
 
-    for (let i = obstacles.length - 1; i >= 0; i--) {
+    for (
+        let i =
+            obstacles.length - 1;
+        i >= 0;
+        i--
+    ) {
 
-        const o = obstacles[i];
+        const o =
+            obstacles[i];
 
         o.y +=
             o.speed *
             dt *
-            (hasBuff("SLOW") ? .45 : 1);
+            (
+                hasBuff("SLOW")
+                    ? .45
+                    : 1
+            );
 
-        o.angle += o.rotation * dt;
+        o.angle +=
+            o.rotation * dt;
 
-        if (o.type === "zigzag") {
+        if (
+            o.type === "zigzag"
+        ) {
+
             o.x +=
-                Math.sin(gameTime * 3 + o.y * .01) *
+                Math.sin(
+                    gameTime * 3 +
+                    o.y * .01
+                ) *
                 100 *
                 dt;
         }
 
-        if (o.y > H + 100) {
+        if (
+            o.y >
+            H + 100
+        ) {
 
-            obstacles.splice(i, 1);
+            obstacles.splice(
+                i,
+                1
+            );
 
             score +=
                 10 *
@@ -948,11 +1323,23 @@ function updateObstacles(dt) {
 function spawnCrystal() {
 
     crystalsOnMap.push({
-        x: 25 + Math.random() * (W - 50),
+
+        x:
+            25 +
+            Math.random() *
+            (W - 50),
+
         y: -20,
+
         radius: 7,
-        speed: difficulty().speed * .8,
-        angle: Math.random() * Math.PI * 2
+
+        speed:
+            difficulty().speed *
+            .8,
+
+        angle:
+            Math.random() *
+            Math.PI * 2
     });
 }
 
@@ -960,42 +1347,72 @@ function updateCrystals(dt) {
 
     crystalTimer += dt;
 
-    if (crystalTimer > 1.4) {
+    if (
+        crystalTimer > 1.4
+    ) {
+
         crystalTimer = 0;
+
         spawnCrystal();
     }
 
     for (
-        let i = crystalsOnMap.length - 1;
+        let i =
+            crystalsOnMap.length - 1;
         i >= 0;
         i--
     ) {
 
-        const c = crystalsOnMap[i];
+        const c =
+            crystalsOnMap[i];
 
         c.y +=
             c.speed *
             dt *
-            (hasBuff("SLOW") ? .45 : 1);
+            (
+                hasBuff("SLOW")
+                    ? .45
+                    : 1
+            );
 
-        c.angle += dt * 5;
+        c.angle +=
+            dt * 5;
 
-        if (hasBuff("MAGNET")) {
+        if (
+            hasBuff("MAGNET")
+        ) {
 
-            const dx = player.x - c.x;
-            const dy = player.y - c.y;
+            const dx =
+                player.x - c.x;
 
-            const dist = Math.hypot(dx, dy);
+            const dy =
+                player.y - c.y;
 
-            if (dist < 230) {
+            const dist =
+                Math.hypot(
+                    dx,
+                    dy
+                );
+
+            if (
+                dist < 230
+            ) {
 
                 c.x +=
-                    dx / Math.max(dist, 1) *
+                    dx /
+                    Math.max(
+                        dist,
+                        1
+                    ) *
                     420 *
                     dt;
 
                 c.y +=
-                    dy / Math.max(dist, 1) *
+                    dy /
+                    Math.max(
+                        dist,
+                        1
+                    ) *
                     420 *
                     dt;
             }
@@ -1006,22 +1423,35 @@ function updateCrystals(dt) {
                 c.x - player.x,
                 c.y - player.y
             ) <
-            player.radius + c.radius + 5
+            player.radius +
+            c.radius +
+            5
         ) {
 
             collectCrystal(i);
+
             continue;
         }
 
-        if (c.y > H + 30) {
-            crystalsOnMap.splice(i, 1);
+        if (
+            c.y >
+            H + 30
+        ) {
+
+            crystalsOnMap.splice(
+                i,
+                1
+            );
         }
     }
 }
 
 function collectCrystal(i) {
 
-    crystalsOnMap.splice(i, 1);
+    crystalsOnMap.splice(
+        i,
+        1
+    );
 
     saveData.crystals += 1;
 
@@ -1035,8 +1465,13 @@ function collectCrystal(i) {
         8
     );
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.crystal();
     }
 
@@ -1048,6 +1483,7 @@ function collectCrystal(i) {
 ========================================================= */
 
 const buffInfo = {
+
     LASER: {
         icon: "🔴",
         duration: 9
@@ -1079,8 +1515,13 @@ function activateBuff(type) {
     activeBuffs[type] =
         buffInfo[type].duration;
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.buff();
     }
 
@@ -1092,39 +1533,54 @@ function activateBuff(type) {
 }
 
 function hasBuff(type) {
+
     return activeBuffs[type] > 0;
 }
 
 function updateBuffs(dt) {
 
-    for (const type in activeBuffs) {
+    for (
+        const type in activeBuffs
+    ) {
 
         activeBuffs[type] -= dt;
 
-        if (activeBuffs[type] <= 0) {
+        if (
+            activeBuffs[type] <= 0
+        ) {
+
             delete activeBuffs[type];
         }
     }
 
     buffContainer.innerHTML = "";
 
-    for (const type in activeBuffs) {
+    for (
+        const type in activeBuffs
+    ) {
 
         const div =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
-        div.className = "buff";
+        div.className =
+            "buff";
 
         div.innerHTML = `
             <div class="buff-icon">
                 ${buffInfo[type].icon}
             </div>
             <div class="buff-time">
-                ${Math.ceil(activeBuffs[type])}s
+                ${Math.ceil(
+                    activeBuffs[type]
+                )}s
             </div>
         `;
 
-        buffContainer.appendChild(div);
+        buffContainer.appendChild(
+            div
+        );
     }
 }
 
@@ -1141,19 +1597,29 @@ function spawnBuff() {
     const type =
         types[
             Math.floor(
-                Math.random() * types.length
+                Math.random() *
+                types.length
             )
         ];
 
     eventObjects.push({
+
         type: "buff",
+
         buffType: type,
 
-        x: 30 + Math.random() * (W - 60),
+        x:
+            30 +
+            Math.random() *
+            (W - 60),
+
         y: -30,
 
         radius: 13,
-        speed: difficulty().speed * .7,
+
+        speed:
+            difficulty().speed *
+            .7,
 
         rotation: 0
     });
@@ -1162,35 +1628,56 @@ function spawnBuff() {
 function updateBuffObjects(dt) {
 
     for (
-        let i = eventObjects.length - 1;
+        let i =
+            eventObjects.length - 1;
         i >= 0;
         i--
     ) {
 
-        const o = eventObjects[i];
+        const o =
+            eventObjects[i];
 
-        if (o.type !== "buff") continue;
+        if (
+            o.type !== "buff"
+        ) continue;
 
-        o.y += o.speed * dt;
-        o.rotation += dt * 3;
+        o.y +=
+            o.speed * dt;
+
+        o.rotation +=
+            dt * 3;
 
         if (
             Math.hypot(
                 o.x - player.x,
                 o.y - player.y
             ) <
-            player.radius + o.radius + 5
+            player.radius +
+            o.radius +
+            5
         ) {
 
-            activateBuff(o.buffType);
+            activateBuff(
+                o.buffType
+            );
 
-            eventObjects.splice(i, 1);
+            eventObjects.splice(
+                i,
+                1
+            );
 
             continue;
         }
 
-        if (o.y > H + 50) {
-            eventObjects.splice(i, 1);
+        if (
+            o.y >
+            H + 50
+        ) {
+
+            eventObjects.splice(
+                i,
+                1
+            );
         }
     }
 }
@@ -1201,11 +1688,17 @@ function updateBuffObjects(dt) {
 
 function shoot() {
 
-    if (!running || paused || !saveData.weapon) {
+    if (
+        !running ||
+        paused ||
+        !saveData.weapon
+    ) {
         return;
     }
 
-    if (weaponTimer > 0) return;
+    if (
+        weaponTimer > 0
+    ) return;
 
     weaponTimer =
         Math.max(
@@ -1215,9 +1708,13 @@ function shoot() {
         );
 
     let target = null;
-    let minDistance = Infinity;
 
-    for (const o of obstacles) {
+    let minDistance =
+        Infinity;
+
+    for (
+        const o of obstacles
+    ) {
 
         const dist =
             Math.hypot(
@@ -1225,21 +1722,33 @@ function shoot() {
                 o.y - player.y
             );
 
-        if (dist < minDistance) {
-            minDistance = dist;
+        if (
+            dist < minDistance
+        ) {
+
+            minDistance =
+                dist;
+
             target = o;
         }
     }
 
     if (!target) return;
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.shoot();
     }
 
     projectiles.push({
+
         x: player.x,
+
         y: player.y,
 
         target,
@@ -1250,11 +1759,17 @@ function shoot() {
             saveData.damage
     });
 
-    if (saveData.damage >= 3) {
+    if (
+        saveData.damage >= 3
+    ) {
 
         projectiles.push({
-            x: player.x - 5,
-            y: player.y,
+
+            x:
+                player.x - 5,
+
+            y:
+                player.y,
 
             target,
 
@@ -1265,8 +1780,12 @@ function shoot() {
         });
 
         projectiles.push({
-            x: player.x + 5,
-            y: player.y,
+
+            x:
+                player.x + 5,
+
+            y:
+                player.y,
 
             target,
 
@@ -1281,36 +1800,66 @@ function shoot() {
 function updateWeapon(dt) {
 
     weaponTimer =
-        Math.max(0, weaponTimer - dt);
+        Math.max(
+            0,
+            weaponTimer - dt
+        );
 
-    if (saveData.weapon) {
+    if (
+        saveData.weapon
+    ) {
 
-        if (weaponTimer <= 0) {
+        if (
+            weaponTimer <= 0
+        ) {
+
             shoot();
         }
     }
 
     for (
-        let i = projectiles.length - 1;
+        let i =
+            projectiles.length - 1;
         i >= 0;
         i--
     ) {
 
-        const p = projectiles[i];
+        const p =
+            projectiles[i];
 
-        if (!p.target || !obstacles.includes(p.target)) {
-            projectiles.splice(i, 1);
+        if (
+            !p.target ||
+            !obstacles.includes(
+                p.target
+            )
+        ) {
+
+            projectiles.splice(
+                i,
+                1
+            );
+
             continue;
         }
 
-        const dx = p.target.x - p.x;
-        const dy = p.target.y - p.y;
+        const dx =
+            p.target.x - p.x;
 
-        const dist = Math.hypot(dx, dy);
+        const dy =
+            p.target.y - p.y;
 
-        if (dist < 15) {
+        const dist =
+            Math.hypot(
+                dx,
+                dy
+            );
 
-            p.target.hp -= p.damage;
+        if (
+            dist < 15
+        ) {
+
+            p.target.hp -=
+                p.damage;
 
             createExplosion(
                 p.target.x,
@@ -1318,35 +1867,58 @@ function updateWeapon(dt) {
                 6
             );
 
-            if (p.target.hp <= 0) {
+            if (
+                p.target.hp <= 0
+            ) {
 
                 const index =
-                    obstacles.indexOf(p.target);
+                    obstacles.indexOf(
+                        p.target
+                    );
 
-                if (index >= 0) {
+                if (
+                    index >= 0
+                ) {
 
-                    obstacles.splice(index, 1);
+                    obstacles.splice(
+                        index,
+                        1
+                    );
 
-                    score += 30 * multiplier;
+                    score +=
+                        30 *
+                        multiplier;
 
-                    if (typeof AudioFX !== "undefined") {
+                    if (
+                        typeof AudioFX !==
+                        "undefined" &&
+                        saveData.sound
+                    ) {
+
                         initAudio();
+
                         AudioFX.explosion();
                     }
                 }
             }
 
-            projectiles.splice(i, 1);
+            projectiles.splice(
+                i,
+                1
+            );
+
             continue;
         }
 
         p.x +=
-            dx / dist *
+            dx /
+            dist *
             p.speed *
             dt;
 
         p.y +=
-            dy / dist *
+            dy /
+            dist *
             p.speed *
             dt;
     }
@@ -1369,13 +1941,15 @@ function useShield() {
 
     player.shield =
         2.5 +
-        saveData.shield * 1.2;
+        saveData.shield *
+        1.2;
 
     shieldCooldown =
         Math.max(
             4,
             10 -
-            saveData.shield * 1.5
+            saveData.shield *
+            1.5
         );
 
     createExplosion(
@@ -1384,8 +1958,13 @@ function useShield() {
         25
     );
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.shield();
     }
 
@@ -1410,25 +1989,34 @@ function useEMP() {
         Math.max(
             5,
             12 -
-            saveData.emp * 2
+            saveData.emp *
+            2
         );
 
     const radius =
         150 +
-        saveData.emp * 50;
+        saveData.emp *
+        50;
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.emp();
     }
 
     for (
-        let i = obstacles.length - 1;
+        let i =
+            obstacles.length - 1;
         i >= 0;
         i--
     ) {
 
-        const o = obstacles[i];
+        const o =
+            obstacles[i];
 
         const dist =
             Math.hypot(
@@ -1436,11 +2024,18 @@ function useEMP() {
                 o.y - player.y
             );
 
-        if (dist < radius) {
+        if (
+            dist < radius
+        ) {
 
-            obstacles.splice(i, 1);
+            obstacles.splice(
+                i,
+                1
+            );
 
-            score += 15 * multiplier;
+            score +=
+                15 *
+                multiplier;
 
             createExplosion(
                 o.x,
@@ -1469,16 +2064,19 @@ function triggerRandomEvent() {
 
     let available = [];
 
-    if (gameTime < 60) {
+    if (
+        gameTime < 60
+    ) {
 
         available = [
             "meteor",
             "meteor",
             "laserSweep"
         ];
-    }
 
-    else if (gameTime < 120) {
+    } else if (
+        gameTime < 120
+    ) {
 
         available = [
             "laserSweep",
@@ -1487,9 +2085,10 @@ function triggerRandomEvent() {
             "meteor",
             "hunter"
         ];
-    }
 
-    else if (gameTime < 180) {
+    } else if (
+        gameTime < 180
+    ) {
 
         available = [
             "laserSweep",
@@ -1498,9 +2097,10 @@ function triggerRandomEvent() {
             "meteor",
             "electric"
         ];
-    }
 
-    else if (gameTime < 300) {
+    } else if (
+        gameTime < 300
+    ) {
 
         available = [
             "laserSweep",
@@ -1512,9 +2112,8 @@ function triggerRandomEvent() {
             "comboHunterLaser",
             "comboElectricMeteor"
         ];
-    }
 
-    else {
+    } else {
 
         available = [
             "laserSweep",
@@ -1533,47 +2132,69 @@ function triggerRandomEvent() {
     const event =
         available[
             Math.floor(
-                Math.random() * available.length
+                Math.random() *
+                available.length
             )
         ];
 
-    if (event === "laserSweep") {
+    if (
+        event === "laserSweep"
+    ) {
+
         laserSweep();
-    }
 
-    else if (event === "laserStrike") {
+    } else if (
+        event === "laserStrike"
+    ) {
+
         laserStrike();
-    }
 
-    else if (event === "hunter") {
+    } else if (
+        event === "hunter"
+    ) {
+
         spawnHunter();
-    }
 
-    else if (event === "meteor") {
+    } else if (
+        event === "meteor"
+    ) {
+
         meteorRain();
-    }
 
-    else if (event === "electric") {
+    } else if (
+        event === "electric"
+    ) {
+
         electricField();
-    }
 
-    else if (event === "comboLaserMeteor") {
+    } else if (
+        event === "comboLaserMeteor"
+    ) {
+
         comboLaserMeteor();
-    }
 
-    else if (event === "comboHunterLaser") {
+    } else if (
+        event === "comboHunterLaser"
+    ) {
+
         comboHunterLaser();
-    }
 
-    else if (event === "comboElectricMeteor") {
+    } else if (
+        event === "comboElectricMeteor"
+    ) {
+
         comboElectricMeteor();
-    }
 
-    else if (event === "comboTriple") {
+    } else if (
+        event === "comboTriple"
+    ) {
+
         comboTriple();
-    }
 
-    else if (event === "rare") {
+    } else if (
+        event === "rare"
+    ) {
+
         rareEvent();
     }
 }
@@ -1591,18 +2212,30 @@ function laserSweep() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.laser();
         }
 
         eventObjects.push({
+
             type: "laserSweep",
 
             y:
@@ -1622,7 +2255,9 @@ function laserSweep() {
     }, 1300);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 3000);
 }
 
@@ -1637,8 +2272,12 @@ function laserStrike() {
 
     const position =
         vertical
-            ? 40 + Math.random() * (W - 80)
-            : 100 + Math.random() * (H - 200);
+            ? 40 +
+              Math.random() *
+              (W - 80)
+            : 100 +
+              Math.random() *
+              (H - 200);
 
     showWarning(
         "⚠ LASER STRIKE",
@@ -1647,24 +2286,38 @@ function laserStrike() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.laser();
         }
 
         eventObjects.push({
+
             type: "laserStrike",
 
             vertical,
+
             position,
 
             timer: 0,
+
             duration: .9,
 
             thickness: 35
@@ -1673,7 +2326,9 @@ function laserStrike() {
     }, 1100);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 2600);
 }
 
@@ -1690,18 +2345,30 @@ function spawnHunter() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.hunter();
         }
 
         eventObjects.push({
+
             type: "hunter",
 
             x:
@@ -1720,8 +2387,10 @@ function spawnHunter() {
 
             speed:
                 100 +
-                Math.min(gameTime, 180) *
-                1.5,
+                Math.min(
+                    gameTime,
+                    180
+                ) * 1.5,
 
             pulse: 0
         });
@@ -1729,7 +2398,9 @@ function spawnHunter() {
     }, 800);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 2500);
 }
 
@@ -1746,14 +2417,25 @@ function meteorRain() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.meteor();
         }
 
@@ -1764,13 +2446,23 @@ function meteorRain() {
                     ? 14
                     : 12;
 
-        for (let i = 0; i < amount; i++) {
+        for (
+            let i = 0;
+            i < amount;
+            i++
+        ) {
 
             setTimeout(() => {
 
-                if (!running || gameOver) return;
+                if (
+                    !running ||
+                    gameOver
+                ) {
+                    return;
+                }
 
                 eventObjects.push({
+
                     type: "meteor",
 
                     x:
@@ -1788,7 +2480,10 @@ function meteorRain() {
                         330 +
                         Math.random() *
                         250 +
-                        Math.min(gameTime, 300) * .25,
+                        Math.min(
+                            gameTime,
+                            300
+                        ) * .25,
 
                     angle:
                         .3 +
@@ -1802,7 +2497,9 @@ function meteorRain() {
     }, 800);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 5000);
 }
 
@@ -1819,17 +2516,28 @@ function electricField() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
         }
 
         eventObjects.push({
+
             type: "electric",
 
             x:
@@ -1838,7 +2546,8 @@ function electricField() {
 
             width:
                 80 +
-                Math.random() * 100,
+                Math.random() *
+                100,
 
             timer: 0,
 
@@ -1851,7 +2560,9 @@ function electricField() {
     }, 900);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 7500);
 }
 
@@ -1868,15 +2579,27 @@ function comboLaserMeteor() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.laser();
+
             AudioFX.meteor();
         }
 
@@ -1886,6 +2609,7 @@ function comboLaserMeteor() {
             (H - 280);
 
         eventObjects.push({
+
             type: "laserSweep",
 
             y: laserY,
@@ -1899,30 +2623,45 @@ function comboLaserMeteor() {
             duration: 1.5
         });
 
-        for (let i = 0; i < 7; i++) {
+        for (
+            let i = 0;
+            i < 7;
+            i++
+        ) {
 
             setTimeout(() => {
 
-                if (!running || gameOver) return;
+                if (
+                    !running ||
+                    gameOver
+                ) {
+                    return;
+                }
 
                 eventObjects.push({
+
                     type: "meteor",
 
-                    x: Math.random() * W,
+                    x:
+                        Math.random() *
+                        W,
 
                     y: -50,
 
                     radius:
                         12 +
-                        Math.random() * 12,
+                        Math.random() *
+                        12,
 
                     speed:
                         360 +
-                        Math.random() * 220,
+                        Math.random() *
+                        220,
 
                     angle:
                         .3 +
-                        Math.random() * .5
+                        Math.random() *
+                        .5
                 });
 
             }, i * 210);
@@ -1931,7 +2670,9 @@ function comboLaserMeteor() {
     }, 900);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 3600);
 }
 
@@ -1948,19 +2689,32 @@ function comboHunterLaser() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.hunter();
+
             AudioFX.laser();
         }
 
         eventObjects.push({
+
             type: "hunter",
 
             x:
@@ -1981,7 +2735,10 @@ function comboHunterLaser() {
 
             speed:
                 125 +
-                Math.min(gameTime, 300) * 1.5,
+                Math.min(
+                    gameTime,
+                    300
+                ) * 1.5,
 
             pulse: 0
         });
@@ -1990,14 +2747,19 @@ function comboHunterLaser() {
             Math.random() > .5;
 
         eventObjects.push({
+
             type: "laserStrike",
 
             vertical,
 
             position:
                 vertical
-                    ? 40 + Math.random() * (W - 80)
-                    : 100 + Math.random() * (H - 200),
+                    ? 40 +
+                      Math.random() *
+                      (W - 80)
+                    : 100 +
+                      Math.random() *
+                      (H - 200),
 
             timer: 0,
 
@@ -2009,7 +2771,9 @@ function comboHunterLaser() {
     }, 850);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 3200);
 }
 
@@ -2026,56 +2790,85 @@ function comboElectricMeteor() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.meteor();
         }
 
         eventObjects.push({
+
             type: "electric",
 
             x:
-                Math.random() * W,
+                Math.random() *
+                W,
 
             width:
                 90 +
-                Math.random() * 100,
+                Math.random() *
+                100,
 
             timer: 0,
 
             duration: 6
         });
 
-        for (let i = 0; i < 9; i++) {
+        for (
+            let i = 0;
+            i < 9;
+            i++
+        ) {
 
             setTimeout(() => {
 
-                if (!running || gameOver) return;
+                if (
+                    !running ||
+                    gameOver
+                ) {
+                    return;
+                }
 
                 eventObjects.push({
+
                     type: "meteor",
 
-                    x: Math.random() * W,
+                    x:
+                        Math.random() *
+                        W,
 
                     y: -50,
 
                     radius:
                         12 +
-                        Math.random() * 13,
+                        Math.random() *
+                        13,
 
                     speed:
                         340 +
-                        Math.random() * 240,
+                        Math.random() *
+                        240,
 
                     angle:
                         .3 +
-                        Math.random() * .5
+                        Math.random() *
+                        .5
                 });
 
             }, i * 180);
@@ -2084,7 +2877,9 @@ function comboElectricMeteor() {
     }, 800);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 4300);
 }
 
@@ -2101,28 +2896,44 @@ function comboTriple() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.laser();
+
             AudioFX.hunter();
+
             AudioFX.meteor();
         }
 
         eventObjects.push({
+
             type: "electric",
 
             x:
-                Math.random() * W,
+                Math.random() *
+                W,
 
             width:
                 80 +
-                Math.random() * 90,
+                Math.random() *
+                90,
 
             timer: 0,
 
@@ -2130,6 +2941,7 @@ function comboTriple() {
         });
 
         eventObjects.push({
+
             type: "hunter",
 
             x:
@@ -2150,12 +2962,16 @@ function comboTriple() {
 
             speed:
                 140 +
-                Math.min(gameTime, 400),
+                Math.min(
+                    gameTime,
+                    400
+                ),
 
             pulse: 0
         });
 
         eventObjects.push({
+
             type: "laserStrike",
 
             vertical:
@@ -2163,8 +2979,12 @@ function comboTriple() {
 
             position:
                 Math.random() > .5
-                    ? 40 + Math.random() * (W - 80)
-                    : 100 + Math.random() * (H - 200),
+                    ? 40 +
+                      Math.random() *
+                      (W - 80)
+                    : 100 +
+                      Math.random() *
+                      (H - 200),
 
             timer: 0,
 
@@ -2173,13 +2993,23 @@ function comboTriple() {
             thickness: 32
         });
 
-        for (let i = 0; i < 6; i++) {
+        for (
+            let i = 0;
+            i < 6;
+            i++
+        ) {
 
             setTimeout(() => {
 
-                if (!running || gameOver) return;
+                if (
+                    !running ||
+                    gameOver
+                ) {
+                    return;
+                }
 
                 eventObjects.push({
+
                     type: "meteor",
 
                     x:
@@ -2190,15 +3020,18 @@ function comboTriple() {
 
                     radius:
                         11 +
-                        Math.random() * 13,
+                        Math.random() *
+                        13,
 
                     speed:
                         360 +
-                        Math.random() * 250,
+                        Math.random() *
+                        250,
 
                     angle:
                         .3 +
-                        Math.random() * .5
+                        Math.random() *
+                        .5
                 });
 
             }, i * 240);
@@ -2207,7 +3040,9 @@ function comboTriple() {
     }, 800);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 5000);
 }
 
@@ -2227,23 +3062,32 @@ function rareEvent() {
     const type =
         rare[
             Math.floor(
-                Math.random() * rare.length
+                Math.random() *
+                rare.length
             )
         ];
 
-    if (type === "crystalRush") {
+    if (
+        type === "crystalRush"
+    ) {
         crystalRush();
     }
 
-    if (type === "redAlert") {
+    if (
+        type === "redAlert"
+    ) {
         redAlert();
     }
 
-    if (type === "safeZone") {
+    if (
+        type === "safeZone"
+    ) {
         safeZone();
     }
 
-    if (type === "overcharge") {
+    if (
+        type === "overcharge"
+    ) {
         overcharge();
     }
 }
@@ -2261,19 +3105,34 @@ function crystalRush() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
         }
 
-        for (let i = 0; i < 24; i++) {
+        for (
+            let i = 0;
+            i < 24;
+            i++
+        ) {
 
             eventObjects.push({
+
                 type: "rushCrystal",
 
                 x:
@@ -2283,24 +3142,29 @@ function crystalRush() {
 
                 y:
                     -20 -
-                    Math.random() * 500,
+                    Math.random() *
+                    500,
 
                 radius: 8,
 
                 speed:
                     250 +
-                    Math.random() * 100,
+                    Math.random() *
+                    100,
 
                 angle:
                     Math.random() *
-                    Math.PI * 2
+                    Math.PI *
+                    2
             });
         }
 
     }, 700);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 5500);
 }
 
@@ -2317,46 +3181,70 @@ function redAlert() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
+
             AudioFX.meteor();
+
             AudioFX.hunter();
+
             AudioFX.laser();
         }
 
-        for (let i = 0; i < 8; i++) {
+        for (
+            let i = 0;
+            i < 8;
+            i++
+        ) {
 
             eventObjects.push({
+
                 type: "meteor",
 
                 x:
-                    Math.random() * W,
+                    Math.random() *
+                    W,
 
                 y:
                     -50 -
-                    Math.random() * 250,
+                    Math.random() *
+                    250,
 
                 radius:
                     13 +
-                    Math.random() * 13,
+                    Math.random() *
+                    13,
 
                 speed:
                     400 +
-                    Math.random() * 250,
+                    Math.random() *
+                    250,
 
                 angle:
                     .3 +
-                    Math.random() * .5
+                    Math.random() *
+                    .5
             });
         }
 
         eventObjects.push({
+
             type: "hunter",
 
             x:
@@ -2377,12 +3265,16 @@ function redAlert() {
 
             speed:
                 150 +
-                Math.min(gameTime, 400),
+                Math.min(
+                    gameTime,
+                    400
+                ),
 
             pulse: 0
         });
 
         eventObjects.push({
+
             type: "laserStrike",
 
             vertical:
@@ -2390,8 +3282,12 @@ function redAlert() {
 
             position:
                 Math.random() > .5
-                    ? 40 + Math.random() * (W - 80)
-                    : 100 + Math.random() * (H - 200),
+                    ? 40 +
+                      Math.random() *
+                      (W - 80)
+                    : 100 +
+                      Math.random() *
+                      (H - 200),
 
             timer: 0,
 
@@ -2403,7 +3299,9 @@ function redAlert() {
     }, 900);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 4500);
 }
 
@@ -2420,17 +3318,28 @@ function safeZone() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
         }
 
         eventObjects.push({
+
             type: "safeZone",
 
             x:
@@ -2440,19 +3349,26 @@ function safeZone() {
                 H * .58,
 
             radius:
-                Math.min(W, H) * .18,
+                Math.min(
+                    W,
+                    H
+                ) * .18,
 
             timer: 0,
 
             duration: 8
         });
 
-        activateBuff("SHIELD");
+        activateBuff(
+            "SHIELD"
+        );
 
     }, 700);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 9000);
 }
 
@@ -2469,18 +3385,33 @@ function overcharge() {
 
     setTimeout(() => {
 
-        if (!running || gameOver) {
+        if (
+            !running ||
+            gameOver
+        ) {
+
             eventBusy = false;
+
             return;
         }
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.eventStart();
         }
 
-        activateBuff("DOUBLE");
-        activateBuff("LASER");
+        activateBuff(
+            "DOUBLE"
+        );
+
+        activateBuff(
+            "LASER"
+        );
 
         score += 100;
 
@@ -2495,7 +3426,9 @@ function overcharge() {
     }, 600);
 
     setTimeout(() => {
+
         eventBusy = false;
+
     }, 2500);
 }
 
@@ -2509,25 +3442,33 @@ function updateEvents(dt) {
 
     let nextEventTime;
 
-    if (gameTime < 60) {
+    if (
+        gameTime < 60
+    ) {
 
         nextEventTime =
             12 +
             Math.random() * 5;
 
-    } else if (gameTime < 120) {
+    } else if (
+        gameTime < 120
+    ) {
 
         nextEventTime =
             10 +
             Math.random() * 4;
 
-    } else if (gameTime < 180) {
+    } else if (
+        gameTime < 180
+    ) {
 
         nextEventTime =
             8 +
             Math.random() * 4;
 
-    } else if (gameTime < 300) {
+    } else if (
+        gameTime < 300
+    ) {
 
         nextEventTime =
             7 +
@@ -2541,30 +3482,43 @@ function updateEvents(dt) {
                 8 -
                 Math.min(
                     2,
-                    (gameTime - 300) / 180
+                    (
+                        gameTime -
+                        300
+                    ) / 180
                 )
             ) +
             Math.random() * 2.5;
     }
 
-    if (eventTimer <= 0) {
+    if (
+        eventTimer <= 0
+    ) {
 
-        eventTimer = nextEventTime;
+        eventTimer =
+            nextEventTime;
 
         triggerRandomEvent();
     }
 
     for (
-        let i = eventObjects.length - 1;
+        let i =
+            eventObjects.length - 1;
         i >= 0;
         i--
     ) {
 
-        const o = eventObjects[i];
+        const o =
+            eventObjects[i];
 
-        if (o.type === "buff") continue;
+        if (
+            o.type === "buff"
+        ) continue;
 
-        if (o.type === "laserSweep") {
+        if (
+            o.type ===
+            "laserSweep"
+        ) {
 
             o.timer += dt;
 
@@ -2575,7 +3529,8 @@ function updateEvents(dt) {
 
                 const distance =
                     Math.abs(
-                        player.y - o.y
+                        player.y -
+                        o.y
                     );
 
                 if (
@@ -2583,61 +3538,105 @@ function updateEvents(dt) {
                     player.radius +
                     o.thickness / 2
                 ) {
+
                     damagePlayer();
                 }
             }
 
-            if (o.timer >= o.duration) {
-                eventObjects.splice(i, 1);
+            if (
+                o.timer >=
+                o.duration
+            ) {
+
+                eventObjects.splice(
+                    i,
+                    1
+                );
             }
         }
 
-        if (o.type === "laserStrike") {
+        if (
+            o.type ===
+            "laserStrike"
+        ) {
 
             o.timer += dt;
 
-            if (o.timer > .15) {
+            if (
+                o.timer > .15
+            ) {
 
                 const hit =
                     o.vertical
-                        ? Math.abs(player.x - o.position)
-                        : Math.abs(player.y - o.position);
+                        ? Math.abs(
+                            player.x -
+                            o.position
+                        )
+                        : Math.abs(
+                            player.y -
+                            o.position
+                        );
 
                 if (
                     hit <
                     player.radius +
                     o.thickness / 2
                 ) {
+
                     damagePlayer();
                 }
             }
 
-            if (o.timer >= o.duration) {
-                eventObjects.splice(i, 1);
+            if (
+                o.timer >=
+                o.duration
+            ) {
+
+                eventObjects.splice(
+                    i,
+                    1
+                );
             }
         }
 
-        if (o.type === "hunter") {
+        if (
+            o.type === "hunter"
+        ) {
 
             o.life -= dt;
-            o.pulse += dt * 8;
+
+            o.pulse +=
+                dt * 8;
 
             const dx =
-                player.x - o.x;
+                player.x -
+                o.x;
 
             const dy =
-                player.y - o.y;
+                player.y -
+                o.y;
 
             const dist =
-                Math.hypot(dx, dy);
+                Math.hypot(
+                    dx,
+                    dy
+                );
 
             o.x +=
-                dx / Math.max(dist, 1) *
+                dx /
+                Math.max(
+                    dist,
+                    1
+                ) *
                 o.speed *
                 dt;
 
             o.y +=
-                dy / Math.max(dist, 1) *
+                dy /
+                Math.max(
+                    dist,
+                    1
+                ) *
                 o.speed *
                 dt;
 
@@ -2651,16 +3650,24 @@ function updateEvents(dt) {
 
                 o.x -=
                     dx /
-                    Math.max(dist, 1) *
+                    Math.max(
+                        dist,
+                        1
+                    ) *
                     100;
 
                 o.y -=
                     dy /
-                    Math.max(dist, 1) *
+                    Math.max(
+                        dist,
+                        1
+                    ) *
                     100;
             }
 
-            if (o.life <= 0) {
+            if (
+                o.life <= 0
+            ) {
 
                 createExplosion(
                     o.x,
@@ -2668,14 +3675,21 @@ function updateEvents(dt) {
                     20
                 );
 
-                eventObjects.splice(i, 1);
+                eventObjects.splice(
+                    i,
+                    1
+                );
             }
         }
 
-        if (o.type === "meteor") {
+        if (
+            o.type === "meteor"
+        ) {
 
             o.x +=
-                Math.sin(o.angle) *
+                Math.sin(
+                    o.angle
+                ) *
                 100 *
                 dt;
 
@@ -2685,8 +3699,10 @@ function updateEvents(dt) {
 
             if (
                 Math.hypot(
-                    o.x - player.x,
-                    o.y - player.y
+                    o.x -
+                    player.x,
+                    o.y -
+                    player.y
                 ) <
                 player.radius +
                 o.radius
@@ -2694,17 +3710,29 @@ function updateEvents(dt) {
 
                 damagePlayer();
 
-                eventObjects.splice(i, 1);
+                eventObjects.splice(
+                    i,
+                    1
+                );
 
                 continue;
             }
 
-            if (o.y > H + 80) {
-                eventObjects.splice(i, 1);
+            if (
+                o.y >
+                H + 80
+            ) {
+
+                eventObjects.splice(
+                    i,
+                    1
+                );
             }
         }
 
-        if (o.type === "electric") {
+        if (
+            o.type === "electric"
+        ) {
 
             o.timer += dt;
 
@@ -2715,30 +3743,47 @@ function updateEvents(dt) {
 
                 if (
                     Math.abs(
-                        player.x - o.x
+                        player.x -
+                        o.x
                     ) <
                     o.width / 2 +
                     player.radius
                 ) {
+
                     damagePlayer();
                 }
             }
 
-            if (o.timer >= o.duration) {
-                eventObjects.splice(i, 1);
+            if (
+                o.timer >=
+                o.duration
+            ) {
+
+                eventObjects.splice(
+                    i,
+                    1
+                );
             }
         }
 
-        if (o.type === "rushCrystal") {
+        if (
+            o.type ===
+            "rushCrystal"
+        ) {
 
-            o.y += o.speed * dt;
+            o.y +=
+                o.speed *
+                dt;
 
-            o.angle += dt * 5;
+            o.angle +=
+                dt * 5;
 
             if (
                 Math.hypot(
-                    o.x - player.x,
-                    o.y - player.y
+                    o.x -
+                    player.x,
+                    o.y -
+                    player.y
                 ) <
                 player.radius +
                 o.radius +
@@ -2757,45 +3802,78 @@ function updateEvents(dt) {
                     10
                 );
 
-                if (typeof AudioFX !== "undefined") {
+                if (
+                    typeof AudioFX !==
+                    "undefined" &&
+                    saveData.sound
+                ) {
+
                     initAudio();
+
                     AudioFX.crystal();
                 }
 
-                eventObjects.splice(i, 1);
+                eventObjects.splice(
+                    i,
+                    1
+                );
 
                 save();
 
                 continue;
             }
 
-            if (o.y > H + 40) {
-                eventObjects.splice(i, 1);
+            if (
+                o.y >
+                H + 40
+            ) {
+
+                eventObjects.splice(
+                    i,
+                    1
+                );
             }
         }
 
-        if (o.type === "safeZone") {
+        if (
+            o.type === "safeZone"
+        ) {
 
             o.timer += dt;
 
-            if (o.timer >= o.duration) {
-                eventObjects.splice(i, 1);
+            if (
+                o.timer >=
+                o.duration
+            ) {
+
+                eventObjects.splice(
+                    i,
+                    1
+                );
             }
         }
     }
 }
 
 /* =========================================================
-   SAFE ZONE
+   SAFE ZONE CHECK
 ========================================================= */
 
 function playerInsideSafeZone() {
 
-    for (const o of eventObjects) {
+    for (
+        const o of eventObjects
+    ) {
 
-        if (o.type !== "safeZone") continue;
+        if (
+            o.type !==
+            "safeZone"
+        ) continue;
 
-        if (o.timer >= o.duration) continue;
+        if (
+            o.timer >=
+            o.duration
+        ) continue;
 
         const dist =
             Math.hypot(
@@ -2803,7 +3881,10 @@ function playerInsideSafeZone() {
                 player.y - o.y
             );
 
-        if (dist < o.radius) {
+        if (
+            dist < o.radius
+        ) {
+
             return true;
         }
     }
@@ -2817,23 +3898,42 @@ function playerInsideSafeZone() {
 
 let warningTimeout;
 
-function showWarning(title, text) {
+function showWarning(
+    title,
+    text
+) {
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.warning();
     }
 
-    clearTimeout(warningTimeout);
+    clearTimeout(
+        warningTimeout
+    );
 
-    eventWarningTitle.textContent = title;
-    eventWarningText.textContent = text;
+    eventWarningTitle.textContent =
+        title;
 
-    eventWarning.classList.add("show");
+    eventWarningText.textContent =
+        text;
+
+    eventWarning.classList.add(
+        "show"
+    );
 
     warningTimeout =
         setTimeout(() => {
-            eventWarning.classList.remove("show");
+
+            eventWarning.classList.remove(
+                "show"
+            );
+
         }, 1100);
 }
 
@@ -2849,17 +3949,24 @@ function damagePlayer() {
         hasBuff("SHIELD") ||
         playerInsideSafeZone()
     ) {
+
         return;
     }
 
     player.lives--;
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.damage();
     }
 
-    player.invincible = 1.5;
+    player.invincible =
+        1.5;
 
     shake = .55;
 
@@ -2873,7 +3980,10 @@ function damagePlayer() {
 
     updateHUD();
 
-    if (player.lives <= 0) {
+    if (
+        player.lives <= 0
+    ) {
+
         endGame();
     }
 }
@@ -2881,12 +3991,14 @@ function damagePlayer() {
 function checkObstacleCollisions() {
 
     for (
-        let i = obstacles.length - 1;
+        let i =
+            obstacles.length - 1;
         i >= 0;
         i--
     ) {
 
-        const o = obstacles[i];
+        const o =
+            obstacles[i];
 
         const dist =
             Math.hypot(
@@ -2900,7 +4012,10 @@ function checkObstacleCollisions() {
             o.size * .7
         ) {
 
-            obstacles.splice(i, 1);
+            obstacles.splice(
+                i,
+                1
+            );
 
             damagePlayer();
         }
@@ -2920,7 +4035,9 @@ function updateScore(dt) {
 
     const newMultiplier =
         1 +
-        Math.floor(gameTime / 20);
+        Math.floor(
+            gameTime / 20
+        );
 
     multiplier =
         Math.min(
@@ -2928,7 +4045,10 @@ function updateScore(dt) {
             newMultiplier
         );
 
-    if (hasBuff("DOUBLE")) {
+    if (
+        hasBuff("DOUBLE")
+    ) {
+
         multiplier =
             Math.min(
                 12,
@@ -2945,7 +4065,9 @@ function updateBuffSpawning(dt) {
 
     buffSpawnTimer -= dt;
 
-    if (buffSpawnTimer <= 0) {
+    if (
+        buffSpawnTimer <= 0
+    ) {
 
         buffSpawnTimer =
             gameTime >= 300
@@ -2968,45 +4090,69 @@ function createStars() {
 
     const count =
         Math.floor(
-            Math.min(180, W * H / 5500)
+            Math.min(
+                180,
+                W * H / 5500
+            )
         );
 
-    for (let i = 0; i < count; i++) {
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
 
         stars.push({
-            x: Math.random() * W,
-            y: Math.random() * H,
+
+            x:
+                Math.random() *
+                W,
+
+            y:
+                Math.random() *
+                H,
 
             size:
                 .5 +
-                Math.random() * 1.5,
+                Math.random() *
+                1.5,
 
             speed:
                 15 +
-                Math.random() * 70,
+                Math.random() *
+                70,
 
             alpha:
                 .2 +
-                Math.random() * .8
+                Math.random() *
+                .8
         });
     }
 }
 
 function updateStars(dt) {
 
-    for (const s of stars) {
+    for (
+        const s of stars
+    ) {
 
         s.y +=
             s.speed *
             dt *
-            (1 + gameTime / 80);
+            (
+                1 +
+                gameTime / 80
+            );
 
-        if (s.y > H) {
+        if (
+            s.y > H
+        ) {
 
             s.y = 0;
 
             s.x =
-                Math.random() * W;
+                Math.random() *
+                W;
         }
     }
 }
@@ -3015,9 +4161,17 @@ function updateStars(dt) {
    PARTICLES
 ========================================================= */
 
-function createExplosion(x, y, amount = 12) {
+function createExplosion(
+    x,
+    y,
+    amount = 12
+) {
 
-    for (let i = 0; i < amount; i++) {
+    for (
+        let i = 0;
+        i < amount;
+        i++
+    ) {
 
         const angle =
             Math.random() *
@@ -3025,10 +4179,13 @@ function createExplosion(x, y, amount = 12) {
 
         const speed =
             40 +
-            Math.random() * 220;
+            Math.random() *
+            220;
 
         particles.push({
+
             x,
+
             y,
 
             vx:
@@ -3051,23 +4208,36 @@ function createExplosion(x, y, amount = 12) {
 function updateParticles(dt) {
 
     for (
-        let i = particles.length - 1;
+        let i =
+            particles.length - 1;
         i >= 0;
         i--
     ) {
 
-        const p = particles[i];
+        const p =
+            particles[i];
 
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
+        p.x +=
+            p.vx * dt;
+
+        p.y +=
+            p.vy * dt;
 
         p.vx *= .97;
+
         p.vy *= .97;
 
-        p.life -= dt * 2.2;
+        p.life -=
+            dt * 2.2;
 
-        if (p.life <= 0) {
-            particles.splice(i, 1);
+        if (
+            p.life <= 0
+        ) {
+
+            particles.splice(
+                i,
+                1
+            );
         }
     }
 }
@@ -3078,7 +4248,8 @@ function updateParticles(dt) {
 
 function drawBackground() {
 
-    ctx.fillStyle = "#03050a";
+    ctx.fillStyle =
+        "#03050a";
 
     ctx.fillRect(
         0,
@@ -3094,7 +4265,10 @@ function drawBackground() {
             0,
             W / 2,
             H * .55,
-            Math.max(W, H) * .7
+            Math.max(
+                W,
+                H
+            ) * .7
         );
 
     gradient.addColorStop(
@@ -3107,7 +4281,8 @@ function drawBackground() {
         "rgba(0,0,0,0)"
     );
 
-    ctx.fillStyle = gradient;
+    ctx.fillStyle =
+        gradient;
 
     ctx.fillRect(
         0,
@@ -3116,11 +4291,15 @@ function drawBackground() {
         H
     );
 
-    for (const s of stars) {
+    for (
+        const s of stars
+    ) {
 
-        ctx.globalAlpha = s.alpha;
+        ctx.globalAlpha =
+            s.alpha;
 
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle =
+            "#fff";
 
         ctx.beginPath();
 
@@ -3211,10 +4390,14 @@ function drawPlayer() {
 
         ctx.globalAlpha =
             p.life *
-            (i / player.trail.length) *
+            (
+                i /
+                player.trail.length
+            ) *
             .45;
 
-        ctx.fillStyle = "#00eaff";
+        ctx.fillStyle =
+            "#00eaff";
 
         ctx.beginPath();
 
@@ -3222,7 +4405,10 @@ function drawPlayer() {
             p.x,
             p.y,
             player.radius *
-            (i / player.trail.length),
+            (
+                i /
+                player.trail.length
+            ),
             0,
             Math.PI * 2
         );
@@ -3238,6 +4424,7 @@ function drawPlayer() {
             player.invincible * 12
         ) % 2 === 0
     ) {
+
         return;
     }
 
@@ -3252,7 +4439,9 @@ function drawPlayer() {
         ctx.lineWidth = 3;
 
         ctx.shadowBlur = 25;
-        ctx.shadowColor = "#00eaff";
+
+        ctx.shadowColor =
+            "#00eaff";
 
         ctx.beginPath();
 
@@ -3308,7 +4497,8 @@ function drawPlayer() {
 
     ctx.fill();
 
-    ctx.fillStyle = "#dfffff";
+    ctx.fillStyle =
+        "#dfffff";
 
     ctx.beginPath();
 
@@ -3343,7 +4533,9 @@ function drawPlayer() {
 
 function drawObstacles() {
 
-    for (const o of obstacles) {
+    for (
+        const o of obstacles
+    ) {
 
         ctx.save();
 
@@ -3398,6 +4590,7 @@ function drawObstacles() {
         ctx.closePath();
 
         ctx.fill();
+
         ctx.stroke();
 
         ctx.shadowBlur = 0;
@@ -3412,7 +4605,9 @@ function drawObstacles() {
 
 function drawCrystals() {
 
-    for (const c of crystalsOnMap) {
+    for (
+        const c of crystalsOnMap
+    ) {
 
         ctx.save();
 
@@ -3426,9 +4621,12 @@ function drawCrystals() {
         );
 
         ctx.shadowBlur = 18;
-        ctx.shadowColor = "#00eaff";
 
-        ctx.fillStyle = "#00eaff";
+        ctx.shadowColor =
+            "#00eaff";
+
+        ctx.fillStyle =
+            "#00eaff";
 
         ctx.beginPath();
 
@@ -3466,12 +4664,17 @@ function drawCrystals() {
 
 function drawProjectiles() {
 
-    for (const p of projectiles) {
+    for (
+        const p of projectiles
+    ) {
 
         ctx.shadowBlur = 18;
-        ctx.shadowColor = "#00ffff";
 
-        ctx.strokeStyle = "#00ffff";
+        ctx.shadowColor =
+            "#00ffff";
+
+        ctx.strokeStyle =
+            "#00ffff";
 
         ctx.lineWidth = 3;
 
@@ -3499,9 +4702,13 @@ function drawProjectiles() {
 
 function drawBuffObjects() {
 
-    for (const o of eventObjects) {
+    for (
+        const o of eventObjects
+    ) {
 
-        if (o.type !== "buff") continue;
+        if (
+            o.type !== "buff"
+        ) continue;
 
         ctx.save();
 
@@ -3515,9 +4722,12 @@ function drawBuffObjects() {
         );
 
         ctx.shadowBlur = 25;
-        ctx.shadowColor = "#00eaff";
 
-        ctx.strokeStyle = "#00eaff";
+        ctx.shadowColor =
+            "#00eaff";
+
+        ctx.strokeStyle =
+            "#00eaff";
 
         ctx.fillStyle =
             "rgba(0,220,255,.14)";
@@ -3535,20 +4745,26 @@ function drawBuffObjects() {
         );
 
         ctx.fill();
+
         ctx.stroke();
 
         ctx.rotate(
             -o.rotation
         );
 
-        ctx.font = "17px Arial";
+        ctx.font =
+            "17px Arial";
 
-        ctx.textAlign = "center";
+        ctx.textAlign =
+            "center";
 
-        ctx.textBaseline = "middle";
+        ctx.textBaseline =
+            "middle";
 
         ctx.fillText(
-            buffInfo[o.buffType].icon,
+            buffInfo[
+                o.buffType
+            ].icon,
             0,
             0
         );
@@ -3563,9 +4779,14 @@ function drawBuffObjects() {
 
 function drawEvents() {
 
-    for (const o of eventObjects) {
+    for (
+        const o of eventObjects
+    ) {
 
-        if (o.type === "laserSweep") {
+        if (
+            o.type ===
+            "laserSweep"
+        ) {
 
             const alpha =
                 o.timer < .3
@@ -3574,22 +4795,27 @@ function drawEvents() {
 
             ctx.save();
 
-            ctx.globalAlpha = alpha;
+            ctx.globalAlpha =
+                alpha;
 
             ctx.fillStyle =
                 "rgba(255,0,50,.18)";
 
             ctx.fillRect(
                 0,
-                o.y - o.thickness,
+                o.y -
+                o.thickness,
                 W,
                 o.thickness * 2
             );
 
             ctx.shadowBlur = 30;
-            ctx.shadowColor = "#ff003c";
 
-            ctx.fillStyle = "#ff174f";
+            ctx.shadowColor =
+                "#ff003c";
+
+            ctx.fillStyle =
+                "#ff174f";
 
             ctx.fillRect(
                 0,
@@ -3601,17 +4827,24 @@ function drawEvents() {
             ctx.restore();
         }
 
-        if (o.type === "laserStrike") {
+        if (
+            o.type ===
+            "laserStrike"
+        ) {
 
             ctx.save();
 
             ctx.shadowBlur = 35;
-            ctx.shadowColor = "#ff003c";
+
+            ctx.shadowColor =
+                "#ff003c";
 
             ctx.fillStyle =
                 "rgba(255,0,60,.2)";
 
-            if (o.vertical) {
+            if (
+                o.vertical
+            ) {
 
                 ctx.fillRect(
                     o.position -
@@ -3632,9 +4865,12 @@ function drawEvents() {
                 );
             }
 
-            ctx.fillStyle = "#ff174f";
+            ctx.fillStyle =
+                "#ff174f";
 
-            if (o.vertical) {
+            if (
+                o.vertical
+            ) {
 
                 ctx.fillRect(
                     o.position - 3,
@@ -3656,14 +4892,19 @@ function drawEvents() {
             ctx.restore();
         }
 
-        if (o.type === "hunter") {
+        if (
+            o.type === "hunter"
+        ) {
 
             ctx.save();
 
             ctx.shadowBlur = 25;
-            ctx.shadowColor = "#ff174f";
 
-            ctx.strokeStyle = "#ff174f";
+            ctx.shadowColor =
+                "#ff174f";
+
+            ctx.strokeStyle =
+                "#ff174f";
 
             ctx.fillStyle =
                 "rgba(255,20,70,.18)";
@@ -3681,9 +4922,11 @@ function drawEvents() {
             );
 
             ctx.fill();
+
             ctx.stroke();
 
-            ctx.fillStyle = "#ff174f";
+            ctx.fillStyle =
+                "#ff174f";
 
             ctx.beginPath();
 
@@ -3691,7 +4934,9 @@ function drawEvents() {
                 o.x,
                 o.y,
                 5 +
-                Math.sin(o.pulse) * 2,
+                Math.sin(
+                    o.pulse
+                ) * 2,
                 0,
                 Math.PI * 2
             );
@@ -3701,7 +4946,9 @@ function drawEvents() {
             ctx.restore();
         }
 
-        if (o.type === "meteor") {
+        if (
+            o.type === "meteor"
+        ) {
 
             ctx.save();
 
@@ -3715,9 +4962,12 @@ function drawEvents() {
             );
 
             ctx.shadowBlur = 25;
-            ctx.shadowColor = "#ff7b00";
 
-            ctx.fillStyle = "#ff5b22";
+            ctx.shadowColor =
+                "#ff7b00";
+
+            ctx.fillStyle =
+                "#ff5b22";
 
             ctx.beginPath();
 
@@ -3744,7 +4994,9 @@ function drawEvents() {
             ctx.restore();
         }
 
-        if (o.type === "electric") {
+        if (
+            o.type === "electric"
+        ) {
 
             ctx.save();
 
@@ -3752,7 +5004,8 @@ function drawEvents() {
                 "rgba(0,150,255,.10)";
 
             ctx.fillRect(
-                o.x - o.width / 2,
+                o.x -
+                o.width / 2,
                 0,
                 o.width,
                 H
@@ -3787,7 +5040,10 @@ function drawEvents() {
             ctx.restore();
         }
 
-        if (o.type === "rushCrystal") {
+        if (
+            o.type ===
+            "rushCrystal"
+        ) {
 
             ctx.save();
 
@@ -3801,9 +5057,12 @@ function drawEvents() {
             );
 
             ctx.shadowBlur = 25;
-            ctx.shadowColor = "#00eaff";
 
-            ctx.fillStyle = "#00eaff";
+            ctx.shadowColor =
+                "#00eaff";
+
+            ctx.fillStyle =
+                "#00eaff";
 
             ctx.beginPath();
 
@@ -3831,7 +5090,8 @@ function drawEvents() {
 
             ctx.fill();
 
-            ctx.strokeStyle = "#ffffff";
+            ctx.strokeStyle =
+                "#ffffff";
 
             ctx.lineWidth = 1;
 
@@ -3840,18 +5100,22 @@ function drawEvents() {
             ctx.restore();
         }
 
-        if (o.type === "safeZone") {
+        if (
+            o.type === "safeZone"
+        ) {
 
             const pulse =
                 Math.sin(
-                    performance.now() * .006
+                    performance.now() *
+                    .006
                 ) * 5;
 
             ctx.save();
 
             ctx.globalAlpha = .18;
 
-            ctx.fillStyle = "#00ff88";
+            ctx.fillStyle =
+                "#00ff88";
 
             ctx.beginPath();
 
@@ -3865,15 +5129,18 @@ function drawEvents() {
 
             ctx.fill();
 
-            ctx.globalAlpha = .75;
+            ctx.globalAlpha =
+                .75;
 
-            ctx.strokeStyle = "#00ff88";
+            ctx.strokeStyle =
+                "#00ff88";
 
             ctx.lineWidth = 3;
 
             ctx.shadowBlur = 25;
 
-            ctx.shadowColor = "#00ff88";
+            ctx.shadowColor =
+                "#00ff88";
 
             ctx.beginPath();
 
@@ -3898,7 +5165,9 @@ function drawEvents() {
 
 function drawParticles() {
 
-    for (const p of particles) {
+    for (
+        const p of particles
+    ) {
 
         ctx.globalAlpha =
             Math.max(
@@ -3906,7 +5175,8 @@ function drawParticles() {
                 p.life
             );
 
-        ctx.fillStyle = "#00eaff";
+        ctx.fillStyle =
+            "#00eaff";
 
         ctx.beginPath();
 
@@ -3974,15 +5244,24 @@ let toastTimer;
 
 function showToast(text) {
 
-    toast.textContent = text;
+    toast.textContent =
+        text;
 
-    toast.classList.add("show");
+    toast.classList.add(
+        "show"
+    );
 
-    clearTimeout(toastTimer);
+    clearTimeout(
+        toastTimer
+    );
 
     toastTimer =
         setTimeout(() => {
-            toast.classList.remove("show");
+
+            toast.classList.remove(
+                "show"
+            );
+
         }, 1200);
 }
 
@@ -3996,6 +5275,7 @@ function vibrate(ms) {
         saveData.vibration &&
         navigator.vibrate
     ) {
+
         navigator.vibrate(ms);
     }
 }
@@ -4009,10 +5289,16 @@ function endGame() {
     if (gameOver) return;
 
     gameOver = true;
+
     running = false;
 
-    if (typeof AudioFX !== "undefined") {
+    if (
+        typeof AudioFX !== "undefined" &&
+        saveData.sound
+    ) {
+
         initAudio();
+
         AudioFX.death();
     }
 
@@ -4023,6 +5309,7 @@ function endGame() {
         finalScore >
         saveData.best
     ) {
+
         saveData.best =
             finalScore;
     }
@@ -4038,7 +5325,8 @@ function endGame() {
             )
         );
 
-    saveData.crystals += reward;
+    saveData.crystals +=
+        reward;
 
     save();
 
@@ -4052,9 +5340,12 @@ function endGame() {
     ).textContent =
         reward;
 
-    hud.style.display = "none";
+    hud.style.display =
+        "none";
 
-    showScreen(gameOverScreen);
+    showScreen(
+        gameOverScreen
+    );
 
     updateMenuUI();
 }
@@ -4063,12 +5354,21 @@ function endGame() {
    REVIVE
 ========================================================= */
 
-document.getElementById("reviveButton").onclick = () => {
+document.getElementById(
+    "reviveButton"
+).onclick = () => {
 
     audioClick();
 
-    if (reviveUsed || !gameOver) {
-        showToast("REVIVE ALREADY USED");
+    if (
+        reviveUsed ||
+        !gameOver
+    ) {
+
+        showToast(
+            "REVIVE ALREADY USED"
+        );
+
         return;
     }
 
@@ -4080,11 +5380,14 @@ document.getElementById("reviveButton").onclick = () => {
         );
 
     btn.disabled = true;
-    btn.textContent = "WATCHING AD...";
+
+    btn.textContent =
+        "WATCHING AD...";
 
     setTimeout(() => {
 
         gameOver = false;
+
         running = true;
 
         player.lives =
@@ -4100,16 +5403,24 @@ document.getElementById("reviveButton").onclick = () => {
 
         player.shield = 3;
 
-        if (typeof AudioFX !== "undefined") {
+        if (
+            typeof AudioFX !== "undefined" &&
+            saveData.sound
+        ) {
+
             initAudio();
+
             AudioFX.revive();
         }
 
         showScreen(menu);
 
-        menu.classList.remove("active");
+        menu.classList.remove(
+            "active"
+        );
 
-        hud.style.display = "block";
+        hud.style.display =
+            "block";
 
         lastTime =
             performance.now();
@@ -4118,13 +5429,19 @@ document.getElementById("reviveButton").onclick = () => {
             "REVIVED! 🛡️"
         );
 
-        requestAnimationFrame(loop);
+        requestAnimationFrame(
+            loop
+        );
 
     }, 1200);
 };
 
-document.getElementById("restartButton").onclick = () => {
+document.getElementById(
+    "restartButton"
+).onclick = () => {
+
     audioClick();
+
     startGame();
 };
 
@@ -4139,11 +5456,13 @@ function loop(now) {
         paused ||
         gameOver
     ) {
+
         return;
     }
 
     let dt =
-        (now - lastTime) / 1000;
+        (now - lastTime) /
+        1000;
 
     lastTime = now;
 
@@ -4179,7 +5498,10 @@ function loop(now) {
 
     updateScore(dt);
 
-    if (shake > 0) {
+    if (
+        shake > 0
+    ) {
+
         shake -= dt;
     }
 
@@ -4187,7 +5509,9 @@ function loop(now) {
 
     updateHUD();
 
-    requestAnimationFrame(loop);
+    requestAnimationFrame(
+        loop
+    );
 }
 
 /* =========================================================
@@ -4198,14 +5522,23 @@ function draw() {
 
     ctx.save();
 
-    if (shake > 0) {
+    if (
+        shake > 0
+    ) {
 
         ctx.translate(
-            (Math.random() - .5) *
+
+            (
+                Math.random() -
+                .5
+            ) *
             shake *
             25,
 
-            (Math.random() - .5) *
+            (
+                Math.random() -
+                .5
+            ) *
             shake *
             25
         );
@@ -4231,21 +5564,26 @@ function draw() {
        LASER BUFF
     ========================================= */
 
-    if (hasBuff("LASER")) {
+    if (
+        hasBuff("LASER")
+    ) {
 
         ctx.save();
 
         ctx.globalAlpha =
             .65 +
             Math.sin(
-                performance.now() * .02
+                performance.now() *
+                .02
             ) * .2;
 
         ctx.shadowBlur = 30;
 
-        ctx.shadowColor = "#ff003c";
+        ctx.shadowColor =
+            "#ff003c";
 
-        ctx.strokeStyle = "#ff174f";
+        ctx.strokeStyle =
+            "#ff174f";
 
         ctx.lineWidth = 5;
 
@@ -4266,7 +5604,8 @@ function draw() {
         ctx.restore();
 
         for (
-            let i = obstacles.length - 1;
+            let i =
+                obstacles.length - 1;
             i >= 0;
             i--
         ) {
@@ -4297,8 +5636,13 @@ function draw() {
                     25 *
                     multiplier;
 
-                if (typeof AudioFX !== "undefined") {
+                if (
+                    typeof AudioFX !== "undefined" &&
+                    saveData.sound
+                ) {
+
                     initAudio();
+
                     AudioFX.explosion();
                 }
             }
@@ -4315,14 +5659,18 @@ function draw() {
 document.getElementById(
     "shieldButton"
 ).onclick = () => {
+
     audioClick();
+
     useShield();
 };
 
 document.getElementById(
     "empButton"
 ).onclick = () => {
+
     audioClick();
+
     useEMP();
 };
 
