@@ -58,6 +58,7 @@
             ⚡
             <small>EMP</small>
         </button>
+
     </div>
 
 </div>
@@ -119,59 +120,81 @@
     <div class="panel-header">
         <button class="back-btn" data-close="shopPanel">←</button>
         <h2>UPGRADES</h2>
-        <div class="panel-currency">💎 <span id="shopCrystals">0</span></div>
+        <div class="panel-currency">
+            💎 <span id="shopCrystals">0</span>
+        </div>
     </div>
 
     <div class="shop-list">
 
         <div class="upgrade">
+
             <div class="upgrade-icon">❤️</div>
+
             <div class="upgrade-info">
                 <h3>EXTRA LIFE</h3>
                 <p>+1 maximum life</p>
                 <small id="lifeLevel">LEVEL 1/3</small>
             </div>
+
             <button id="buyLife">80 💎</button>
+
         </div>
 
         <div class="upgrade">
+
             <div class="upgrade-icon">🔫</div>
+
             <div class="upgrade-info">
                 <h3>NEON WEAPON</h3>
                 <p>Unlock automatic shooting</p>
                 <small id="weaponLevel">LOCKED</small>
             </div>
+
             <button id="buyWeapon">150 💎</button>
+
         </div>
 
         <div class="upgrade">
+
             <div class="upgrade-icon">💥</div>
+
             <div class="upgrade-info">
                 <h3>WEAPON DAMAGE</h3>
                 <p>More damage per shot</p>
                 <small id="damageLevel">LEVEL 1/3</small>
             </div>
+
             <button id="buyDamage">100 💎</button>
+
         </div>
 
         <div class="upgrade">
+
             <div class="upgrade-icon">🛡️</div>
+
             <div class="upgrade-info">
                 <h3>SHIELD</h3>
                 <p>Better shield cooldown</p>
                 <small id="shieldLevel">LEVEL 1/3</small>
             </div>
+
             <button id="buyShield">90 💎</button>
+
         </div>
 
         <div class="upgrade">
+
             <div class="upgrade-icon">⚡</div>
+
             <div class="upgrade-info">
                 <h3>EMP</h3>
                 <p>Stronger EMP radius</p>
                 <small id="empLevel">LEVEL 1/3</small>
             </div>
+
             <button id="buyEmp">100 💎</button>
+
         </div>
 
     </div>
@@ -189,27 +212,42 @@
     <div class="settings-list">
 
         <div class="setting">
+
             <div>
                 <h3>🎵 MUSIC</h3>
                 <p>Background music</p>
             </div>
-            <button id="musicToggle" class="toggle">ON</button>
+
+            <button id="musicToggle" class="toggle">
+                ON
+            </button>
+
         </div>
 
         <div class="setting">
+
             <div>
                 <h3>🔊 SOUND</h3>
                 <p>Game sounds</p>
             </div>
-            <button id="soundToggle" class="toggle">ON</button>
+
+            <button id="soundToggle" class="toggle">
+                ON
+            </button>
+
         </div>
 
         <div class="setting">
+
             <div>
                 <h3>📳 VIBRATION</h3>
                 <p>Haptic feedback</p>
             </div>
-            <button id="vibrationToggle" class="toggle">ON</button>
+
+            <button id="vibrationToggle" class="toggle">
+                ON
+            </button>
+
         </div>
 
     </div>
@@ -238,8 +276,10 @@
         <a href="https://t.me/NEON_DODGE"
            target="_blank"
            class="telegram-btn">
+
             ✈ TELEGRAM
             <strong>@NEON_DODGE</strong>
+
         </a>
 
     </div>
@@ -255,10 +295,14 @@
     </div>
 
     <div class="daily-content">
+
         <div class="daily-icon">🎁</div>
 
         <h2>DAILY BONUS</h2>
-        <p>Заходи каждый день и получай кристаллы.</p>
+
+        <p>
+            Заходи каждый день и получай кристаллы.
+        </p>
 
         <div class="daily-reward">
             💎 +25
@@ -269,6 +313,7 @@
         </button>
 
         <p id="dailyStatus"></p>
+
     </div>
 
 </div>
@@ -276,15 +321,27 @@
 <!-- GAME OVER -->
 <div id="gameOver" class="screen">
 
-    <div class="gameover-title">GAME OVER</div>
+    <div class="gameover-title">
+        GAME OVER
+    </div>
 
     <div class="final-score">
+
         <span>SCORE</span>
-        <strong id="finalScore">0</strong>
+
+        <strong id="finalScore">
+            0
+        </strong>
+
     </div>
 
     <div class="reward">
-        💎 +<span id="rewardAmount">0</span>
+
+        💎 +
+        <span id="rewardAmount">
+            0
+        </span>
+
     </div>
 
     <button id="reviveButton" class="main-btn revive">
@@ -304,7 +361,9 @@
 <!-- PAUSE -->
 <div id="pauseScreen" class="screen">
 
-    <div class="pause-title">PAUSED</div>
+    <div class="pause-title">
+        PAUSED
+    </div>
 
     <button id="resumeButton" class="main-btn">
         ▶ RESUME
@@ -318,6 +377,8 @@
 
 <div id="toast"></div>
 
+<!-- SCRIPTS -->
+<script src="audio.js"></script>
 <script src="game.js"></script>
 
 </body>
