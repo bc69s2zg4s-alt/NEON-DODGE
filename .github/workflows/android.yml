@@ -58,7 +58,7 @@ jobs:
                   )
           p.write_text(s)
           PY
-      - name: Fix game AdMob connection
+      - name: Fix AdMob connection in game.js
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -100,7 +100,7 @@ jobs:
       - name: Add Android
         run: |
           npx cap add android
-      - name: Configure AdMob App ID
+      - name: Configure Android AdMob
         run: |
           mkdir -p android/app/src/main/res/values
           cat > android/app/src/main/res/values/strings.xml <<'EOF'
@@ -128,14 +128,14 @@ jobs:
               )
           manifest.write_text(s)
           PY
-      - name: Restore signing key
+      - name: Restore signing keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > neondodge-release.keystore
           test -s neondodge-release.keystore
           echo "Keystore restored successfully."
-      - name: Configure release signing
+      - name: Configure Release signing
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -145,8 +145,8 @@ jobs:
           from pathlib import Path
           p = Path("android/app/build.gradle")
           s = p.read_text()
-          signing = r'''
-          android {
+          if "signingConfigs" not in s:
+              signing_block = '''
               signingConfigs {
                   release {
                       storeFile file("../../neondodge-release.keystore")
@@ -155,25 +155,30 @@ jobs:
                       keyPassword System.getenv("KEY_PASSWORD")
                   }
               }
-          }
-          '''
-          if "signingConfigs" not in s:
+              '''
               s = s.replace(
                   "android {",
-                  signing,
+                  "android {\n" + signing_block,
                   1
               )
           if "signingConfig signingConfigs.release" not in s:
-              s = s.replace(
-                  "buildTypes {",
-                  """buildTypes {
-              release {
+              old_release = '''release {
+                  minifyEnabled false
+                  proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+              }'''
+              new_release = '''release {
+                  minifyEnabled false
                   signingConfig signingConfigs.release
-              }
-          }
-          buildTypes {""",
-                  1
-              )
+                  proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+              }'''
+              if old_release in s:
+                  s = s.replace(
+                      old_release,
+                      new_release,
+                      1
+                  )
+              else:
+                  print("WARNING: Standard release block not found.")
           p.write_text(s)
           PY
       - name: Sync Capacitor
@@ -197,8 +202,10 @@ jobs:
           ./gradlew bundleRelease --stacktrace
       - name: Verify AAB
         run: |
+          echo "Checking Release AAB..."
           test -f android/app/build/outputs/bundle/release/app-release.aab
           ls -lh android/app/build/outputs/bundle/release/app-release.aab
+          echo "AAB BUILD SUCCESSFUL!"
       - name: Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
