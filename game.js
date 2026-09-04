@@ -42,7 +42,10 @@ const defaultData = {
     sound: true,
     vibration: true,
 
-    lastDaily: 0
+    lastDaily: 0,
+
+    /* AdMob */
+    adLossCount: 0
 };
 
 let saveData = JSON.parse(
@@ -61,6 +64,13 @@ if (!saveData) {
         saveData.crystals,
         300
     );
+
+    saveData.adLossCount =
+        Number.isFinite(
+            Number(saveData.adLossCount)
+        )
+            ? Number(saveData.adLossCount)
+            : 0;
 }
 
 function save() {
@@ -130,18 +140,49 @@ function audioClick() {
 const AdMob =
     window.Capacitor?.Plugins?.AdMob || null;
 
-// Пока используем официальный тестовый Rewarded Ad ID.
-// Перед публикацией заменим только эту строку
-// на твой настоящий Ad Unit ID.
+/*
+    REAL ADMOB IDS
+*/
+
+const ADMOB_APP_ID =
+    "ca-app-pub-7914086624525579~8190565290";
+
 const ADMOB_REWARDED_ID =
-    "ca-app-pub-3940256099942544/5224354917";
+    "ca-app-pub-7914086624525579/4837005615";
+
+const ADMOB_INTERSTITIAL_ID =
+    "ca-app-pub-7914086624525579/1314517401";
+
+/*
+    Interstitial показываем после
+    каждого 4-го проигрыша.
+*/
+
+const INTERSTITIAL_LOSS_INTERVAL = 4;
 
 let admobReady = false;
+
+let rewardedPreparing = false;
+let interstitialPreparing = false;
+
+let rewardedLoaded = false;
+let interstitialLoaded = false;
+
+let rewardedRequestInProgress = false;
+let interstitialRequestInProgress = false;
+
+/* =========================================================
+   ADMOB INITIALIZATION
+========================================================= */
 
 async function initAdMob() {
 
     if (!AdMob) {
-        console.warn("AdMob plugin not available");
+
+        console.warn(
+            "AdMob plugin not available"
+        );
+
         return false;
     }
 
@@ -155,7 +196,9 @@ async function initAdMob() {
 
         admobReady = true;
 
-        console.log("AdMob initialized");
+        console.log(
+            "AdMob initialized"
+        );
 
         return true;
 
@@ -170,16 +213,21 @@ async function initAdMob() {
     }
 }
 
-async function showRewardedReviveAd() {
+/* =========================================================
+   PREPARE REWARDED
+========================================================= */
 
-    if (!AdMob) {
+async function prepareRewardedAd() {
 
-        showToast(
-            "ADS AVAILABLE IN APP ONLY"
-        );
-
+    if (
+        !AdMob ||
+        rewardedPreparing
+    ) {
         return false;
     }
+
+    rewardedPreparing = true;
+    rewardedLoaded = false;
 
     try {
 
@@ -193,10 +241,96 @@ async function showRewardedReviveAd() {
         await AdMob.prepareRewardVideoAd({
 
             adId:
-                ADMOB_REWARDED_ID,
+                ADMOB_REWARDED_ID
 
-            isTesting: true
         });
+
+        rewardedLoaded = true;
+
+        console.log(
+            "Rewarded ad loaded"
+        );
+
+        return true;
+
+    } catch (error) {
+
+        rewardedLoaded = false;
+
+        console.warn(
+            "Rewarded ad load error:",
+            error
+        );
+
+        return false;
+
+    } finally {
+
+        rewardedPreparing = false;
+    }
+}
+
+/* =========================================================
+   SHOW REWARDED
+========================================================= */
+
+async function showRewardedReviveAd() {
+
+    if (!AdMob) {
+
+        showToast(
+            "ADS AVAILABLE IN APP ONLY"
+        );
+
+        return false;
+    }
+
+    if (rewardedRequestInProgress) {
+        return false;
+    }
+
+    rewardedRequestInProgress = true;
+
+    try {
+
+        const initialized =
+            await initAdMob();
+
+        if (!initialized) {
+
+            showToast(
+                "AD NOT AVAILABLE"
+            );
+
+            return false;
+        }
+
+        /*
+            Если заранее загруженная реклама
+            отсутствует — загружаем её сейчас.
+        */
+
+        if (!rewardedLoaded) {
+
+            const loaded =
+                await prepareRewardedAd();
+
+            if (!loaded) {
+
+                showToast(
+                    "AD NOT AVAILABLE"
+                );
+
+                return false;
+            }
+        }
+
+        /*
+            ВАЖНО:
+            showRewardVideoAd() возвращает
+            AdMobRewardItem только после
+            получения награды.
+        */
 
         const reward =
             await AdMob.showRewardVideoAd();
@@ -206,9 +340,42 @@ async function showRewardedReviveAd() {
             reward
         );
 
-        return !!reward;
+        rewardedLoaded = false;
+
+        /*
+            Готовим следующую рекламу
+            заранее.
+        */
+
+        setTimeout(() => {
+
+            prepareRewardedAd();
+
+        }, 500);
+
+        if (
+            reward &&
+            Number(reward.amount) > 0
+        ) {
+
+            return true;
+        }
+
+        /*
+            На случай если конкретная
+            версия SDK вернула объект
+            без amount.
+        */
+
+        if (reward) {
+            return true;
+        }
+
+        return false;
 
     } catch (error) {
+
+        rewardedLoaded = false;
 
         console.error(
             "Rewarded ad error:",
@@ -216,7 +383,163 @@ async function showRewardedReviveAd() {
         );
 
         return false;
+
+    } finally {
+
+        rewardedRequestInProgress = false;
     }
+}
+
+/* =========================================================
+   PREPARE INTERSTITIAL
+========================================================= */
+
+async function prepareInterstitialAd() {
+
+    if (
+        !AdMob ||
+        interstitialPreparing
+    ) {
+        return false;
+    }
+
+    interstitialPreparing = true;
+    interstitialLoaded = false;
+
+    try {
+
+        const initialized =
+            await initAdMob();
+
+        if (!initialized) {
+            return false;
+        }
+
+        await AdMob.prepareInterstitial({
+
+            adId:
+                ADMOB_INTERSTITIAL_ID
+
+        });
+
+        interstitialLoaded = true;
+
+        console.log(
+            "Interstitial ad loaded"
+        );
+
+        return true;
+
+    } catch (error) {
+
+        interstitialLoaded = false;
+
+        console.warn(
+            "Interstitial load error:",
+            error
+        );
+
+        return false;
+
+    } finally {
+
+        interstitialPreparing = false;
+    }
+}
+
+/* =========================================================
+   SHOW INTERSTITIAL
+========================================================= */
+
+async function showInterstitialAd() {
+
+    if (!AdMob) {
+        return false;
+    }
+
+    if (interstitialRequestInProgress) {
+        return false;
+    }
+
+    interstitialRequestInProgress = true;
+
+    try {
+
+        const initialized =
+            await initAdMob();
+
+        if (!initialized) {
+            return false;
+        }
+
+        if (!interstitialLoaded) {
+
+            const loaded =
+                await prepareInterstitialAd();
+
+            if (!loaded) {
+                return false;
+            }
+        }
+
+        await AdMob.showInterstitial();
+
+        interstitialLoaded = false;
+
+        /*
+            Загружаем следующую
+            interstitial-рекламу.
+        */
+
+        setTimeout(() => {
+
+            prepareInterstitialAd();
+
+        }, 500);
+
+        return true;
+
+    } catch (error) {
+
+        interstitialLoaded = false;
+
+        console.warn(
+            "Interstitial ad error:",
+            error
+        );
+
+        return false;
+
+    } finally {
+
+        interstitialRequestInProgress = false;
+    }
+}
+
+/* =========================================================
+   PRELOAD ADS
+========================================================= */
+
+async function preloadAds() {
+
+    if (!AdMob) {
+        return;
+    }
+
+    const initialized =
+        await initAdMob();
+
+    if (!initialized) {
+        return;
+    }
+
+    /*
+        Загружаем обе рекламы заранее.
+    */
+
+    prepareRewardedAd();
+
+    prepareInterstitialAd();
 }
 
 /* =========================================================
@@ -832,14 +1155,6 @@ document.getElementById("claimDaily").onclick = () => {
 ========================================================= */
 
 function startGame() {
-
-    /*
-        ВАЖНО:
-        Здесь больше НЕТ AudioFX.setMusic(true).
-
-        Музыка запускается только после
-        реального нажатия Play.
-    */
 
     initAudio();
 
@@ -5380,7 +5695,7 @@ function vibrate(ms) {
    GAME OVER
 ========================================================= */
 
-function endGame() {
+async function endGame() {
 
     if (gameOver) return;
 
@@ -5424,6 +5739,27 @@ function endGame() {
     saveData.crystals +=
         reward;
 
+    /*
+        Считаем именно ПОЛНОЕ проигрывание,
+        когда закончились жизни.
+    */
+
+    saveData.adLossCount =
+        Number(saveData.adLossCount || 0) + 1;
+
+    const losses =
+        saveData.adLossCount;
+
+    const shouldShowInterstitial =
+        losses >=
+        INTERSTITIAL_LOSS_INTERVAL;
+
+    /*
+        Если это 4-е, 8-е, 12-е...
+        проигрывание — сбрасываем счётчик
+        после успешного показа рекламы.
+    */
+
     save();
 
     document.getElementById(
@@ -5444,6 +5780,51 @@ function endGame() {
     );
 
     updateMenuUI();
+
+    /*
+        Небольшая задержка после смерти,
+        чтобы GAME OVER успел появиться.
+    */
+
+    if (
+        shouldShowInterstitial &&
+        AdMob
+    ) {
+
+        setTimeout(
+            async () => {
+
+                const shown =
+                    await showInterstitialAd();
+
+                if (shown) {
+
+                    saveData.adLossCount = 0;
+
+                    save();
+
+                    console.log(
+                        "Interstitial shown after 4 losses"
+                    );
+
+                } else {
+
+                    /*
+                        Если реклама не загрузилась,
+                        счётчик НЕ сбрасываем.
+                        Значит следующая попытка
+                        сможет показать её.
+                    */
+
+                    console.log(
+                        "Interstitial unavailable"
+                    );
+                }
+
+            },
+            700
+        );
+    }
 }
 
 /* =========================================================
@@ -5452,7 +5833,7 @@ function endGame() {
 
 document.getElementById(
     "reviveButton"
-).onclick = () => {
+).onclick = async () => {
 
     audioClick();
 
@@ -5468,19 +5849,36 @@ document.getElementById(
         return;
     }
 
-    reviveUsed = true;
-
     const btn =
         document.getElementById(
             "reviveButton"
         );
+
+    /*
+        Не блокируем reviveUsed навсегда
+        до получения награды.
+    */
 
     btn.disabled = true;
 
     btn.textContent =
         "WATCHING AD...";
 
-    setTimeout(() => {
+    showToast(
+        "LOADING AD..."
+    );
+
+    const rewarded =
+        await showRewardedReviveAd();
+
+    /*
+        ЕСЛИ пользователь получил награду —
+        только тогда возрождаем.
+    */
+
+    if (rewarded) {
+
+        reviveUsed = true;
 
         gameOver = false;
 
@@ -5525,11 +5923,29 @@ document.getElementById(
             "REVIVED! 🛡️"
         );
 
+        updateHUD();
+
         requestAnimationFrame(
             loop
         );
 
-    }, 1200);
+        return;
+    }
+
+    /*
+        Рекламу не посмотрел / реклама
+        не загрузилась / произошла ошибка.
+        Возрождения НЕТ.
+    */
+
+    btn.disabled = false;
+
+    btn.textContent =
+        "▶ REVIVE — WATCH AD";
+
+    showToast(
+        "AD NOT COMPLETED"
+    );
 };
 
 document.getElementById(
@@ -5786,3 +6202,14 @@ bestEl.textContent =
     saveData.best;
 
 showScreen(menu);
+
+/*
+    AdMob запускается только в Android
+    приложении, если плагин реально доступен.
+*/
+
+setTimeout(() => {
+
+    preloadAds();
+
+}, 1000);
