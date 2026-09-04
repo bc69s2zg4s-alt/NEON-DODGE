@@ -137,8 +137,9 @@ function audioClick() {
    ADMOB
 ========================================================= */
 
-const AdMob =
-    window.Capacitor?.Plugins?.AdMob || null;
+function getAdMob() {
+    return window.Capacitor?.Plugins?.AdMob || null;
+}
 
 /*
     REAL ADMOB IDS
@@ -153,11 +154,6 @@ const ADMOB_REWARDED_ID =
 const ADMOB_INTERSTITIAL_ID =
     "ca-app-pub-7914086624525579/7762551857";
 
-/*
-    Interstitial показываем после
-    каждого 4-го проигрыша.
-*/
-
 const INTERSTITIAL_LOSS_INTERVAL = 4;
 
 let admobReady = false;
@@ -171,16 +167,195 @@ let interstitialLoaded = false;
 let rewardedRequestInProgress = false;
 let interstitialRequestInProgress = false;
 
+let rewardedEarned = false;
+
+let admobListenersInstalled = false;
+
+
+/* =========================================================
+   ADMOB LISTENERS
+========================================================= */
+
+async function setupAdMobListeners() {
+
+    const AdMob = getAdMob();
+
+    if (!AdMob) {
+        console.warn(
+            "ADMOB: plugin not available"
+        );
+
+        return false;
+    }
+
+    if (admobListenersInstalled) {
+        return true;
+    }
+
+    try {
+
+        await AdMob.addListener(
+            "onRewardedVideoAdLoaded",
+            () => {
+
+                rewardedLoaded = true;
+
+                console.log(
+                    "ADMOB: REWARDED LOADED"
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "onRewardedVideoAdFailedToLoad",
+            (error) => {
+
+                rewardedLoaded = false;
+
+                console.error(
+                    "ADMOB: REWARDED LOAD FAILED",
+                    error
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "onRewardedVideoAdShowed",
+            () => {
+
+                console.log(
+                    "ADMOB: REWARDED SHOWN"
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "onRewardedVideoAdFailedToShow",
+            (error) => {
+
+                rewardedLoaded = false;
+
+                console.error(
+                    "ADMOB: REWARDED SHOW FAILED",
+                    error
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "onRewardedVideoAdReward",
+            (reward) => {
+
+                rewardedEarned = true;
+
+                console.log(
+                    "ADMOB: REWARD EARNED",
+                    reward
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "onRewardedVideoAdDismissed",
+            () => {
+
+                console.log(
+                    "ADMOB: REWARDED DISMISSED"
+                );
+            }
+        );
+
+
+        await AdMob.addListener(
+            "interstitialAdLoaded",
+            () => {
+
+                interstitialLoaded = true;
+
+                console.log(
+                    "ADMOB: INTERSTITIAL LOADED"
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "interstitialAdFailedToLoad",
+            (error) => {
+
+                interstitialLoaded = false;
+
+                console.error(
+                    "ADMOB: INTERSTITIAL LOAD FAILED",
+                    error
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "interstitialAdShowed",
+            () => {
+
+                console.log(
+                    "ADMOB: INTERSTITIAL SHOWN"
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "interstitialAdFailedToShow",
+            (error) => {
+
+                interstitialLoaded = false;
+
+                console.error(
+                    "ADMOB: INTERSTITIAL SHOW FAILED",
+                    error
+                );
+            }
+        );
+
+        await AdMob.addListener(
+            "interstitialAdDismissed",
+            () => {
+
+                console.log(
+                    "ADMOB: INTERSTITIAL DISMISSED"
+                );
+            }
+        );
+
+        admobListenersInstalled = true;
+
+        console.log(
+            "ADMOB: listeners installed"
+        );
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "ADMOB: listener setup error",
+            error
+        );
+
+        return false;
+    }
+}
+
+
 /* =========================================================
    ADMOB INITIALIZATION
 ========================================================= */
 
 async function initAdMob() {
 
+    const AdMob = getAdMob();
+
     if (!AdMob) {
 
         console.warn(
-            "AdMob plugin not available"
+            "ADMOB: plugin not available"
         );
 
         return false;
@@ -197,15 +372,17 @@ async function initAdMob() {
         admobReady = true;
 
         console.log(
-            "AdMob initialized"
+            "ADMOB: initialized"
         );
+
+        await setupAdMobListeners();
 
         return true;
 
     } catch (error) {
 
         console.error(
-            "AdMob initialization error:",
+            "ADMOB: initialization error",
             error
         );
 
@@ -213,11 +390,14 @@ async function initAdMob() {
     }
 }
 
+
 /* =========================================================
    PREPARE REWARDED
 ========================================================= */
 
 async function prepareRewardedAd() {
+
+    const AdMob = getAdMob();
 
     if (
         !AdMob ||
@@ -227,7 +407,6 @@ async function prepareRewardedAd() {
     }
 
     rewardedPreparing = true;
-    rewardedLoaded = false;
 
     try {
 
@@ -237,6 +416,8 @@ async function prepareRewardedAd() {
         if (!initialized) {
             return false;
         }
+
+        rewardedLoaded = false;
 
         await AdMob.prepareRewardVideoAd({
 
@@ -248,7 +429,7 @@ async function prepareRewardedAd() {
         rewardedLoaded = true;
 
         console.log(
-            "Rewarded ad loaded"
+            "ADMOB: rewarded prepared"
         );
 
         return true;
@@ -257,8 +438,8 @@ async function prepareRewardedAd() {
 
         rewardedLoaded = false;
 
-        console.warn(
-            "Rewarded ad load error:",
+        console.error(
+            "ADMOB: rewarded prepare error",
             error
         );
 
@@ -270,16 +451,19 @@ async function prepareRewardedAd() {
     }
 }
 
+
 /* =========================================================
-   SHOW REWARDED
+   SHOW REWARDED / REVIVE
 ========================================================= */
 
 async function showRewardedReviveAd() {
 
+    const AdMob = getAdMob();
+
     if (!AdMob) {
 
-        showToast(
-            "ADS AVAILABLE IN APP ONLY"
+        console.warn(
+            "ADMOB: plugin unavailable"
         );
 
         return false;
@@ -291,24 +475,16 @@ async function showRewardedReviveAd() {
 
     rewardedRequestInProgress = true;
 
+    rewardedEarned = false;
+
     try {
 
         const initialized =
             await initAdMob();
 
         if (!initialized) {
-
-            showToast(
-                "AD NOT AVAILABLE"
-            );
-
             return false;
         }
-
-        /*
-            Если заранее загруженная реклама
-            отсутствует — загружаем её сейчас.
-        */
 
         if (!rewardedLoaded) {
 
@@ -316,69 +492,64 @@ async function showRewardedReviveAd() {
                 await prepareRewardedAd();
 
             if (!loaded) {
-
-                showToast(
-                    "AD NOT AVAILABLE"
-                );
-
                 return false;
             }
         }
 
-        /*
-            ВАЖНО:
-            showRewardVideoAd() возвращает
-            AdMobRewardItem только после
-            получения награды.
-        */
+        console.log(
+            "ADMOB: showing rewarded..."
+        );
 
         const reward =
             await AdMob.showRewardVideoAd();
 
         console.log(
-            "Reward received:",
+            "ADMOB: show result",
             reward
         );
 
         rewardedLoaded = false;
 
         /*
-            Готовим следующую рекламу
-            заранее.
+            ВАЖНО:
+            Rewarded событие является главным
+            подтверждением получения награды.
         */
-
-        setTimeout(() => {
-
-            prepareRewardedAd();
-
-        }, 500);
 
         if (
-            reward &&
-            Number(reward.amount) > 0
+            rewardedEarned ||
+            (
+                reward &&
+                Number(reward.amount) > 0
+            )
         ) {
 
+            console.log(
+                "ADMOB: REVIVE APPROVED"
+            );
+
+            setTimeout(() => {
+
+                prepareRewardedAd();
+
+            }, 1000);
+
             return true;
         }
 
-        /*
-            На случай если конкретная
-            версия SDK вернула объект
-            без amount.
-        */
-
-        if (reward) {
-            return true;
-        }
+        console.warn(
+            "ADMOB: reward NOT received"
+        );
 
         return false;
 
     } catch (error) {
 
         rewardedLoaded = false;
+        rewardedEarned = false;
 
         console.error(
-            "Rewarded ad error:",
+            "ADMOB: rewarded show error",
             error
         );
 
@@ -390,11 +561,14 @@ async function showRewardedReviveAd() {
     }
 }
 
+
 /* =========================================================
    PREPARE INTERSTITIAL
 ========================================================= */
 
 async function prepareInterstitialAd() {
+
+    const AdMob = getAdMob();
 
     if (
         !AdMob ||
@@ -404,7 +578,6 @@ async function prepareInterstitialAd() {
     }
 
     interstitialPreparing = true;
-    interstitialLoaded = false;
 
     try {
 
@@ -414,6 +587,8 @@ async function prepareInterstitialAd() {
         if (!initialized) {
             return false;
         }
+
+        interstitialLoaded = false;
 
         await AdMob.prepareInterstitial({
 
@@ -425,7 +600,7 @@ async function prepareInterstitialAd() {
         interstitialLoaded = true;
 
         console.log(
-            "Interstitial ad loaded"
+            "ADMOB: interstitial prepared"
         );
 
         return true;
@@ -434,8 +609,8 @@ async function prepareInterstitialAd() {
 
         interstitialLoaded = false;
 
-        console.warn(
-            "Interstitial load error:",
+        console.error(
+            "ADMOB: interstitial prepare error",
             error
         );
 
@@ -447,11 +622,14 @@ async function prepareInterstitialAd() {
     }
 }
 
+
 /* =========================================================
    SHOW INTERSTITIAL
 ========================================================= */
 
 async function showInterstitialAd() {
+
+    const AdMob = getAdMob();
 
     if (!AdMob) {
         return false;
@@ -482,20 +660,19 @@ async function showInterstitialAd() {
             }
         }
 
+        console.log(
+            "ADMOB: showing interstitial..."
+        );
+
         await AdMob.showInterstitial();
 
         interstitialLoaded = false;
-
-        /*
-            Загружаем следующую
-            interstitial-рекламу.
-        */
 
         setTimeout(() => {
 
             prepareInterstitialAd();
 
-        }, 500);
+        }, 1000);
 
         return true;
 
@@ -503,8 +680,8 @@ async function showInterstitialAd() {
 
         interstitialLoaded = false;
 
-        console.warn(
-            "Interstitial ad error:",
+        console.error(
+            "ADMOB: interstitial show error",
             error
         );
 
@@ -516,13 +693,27 @@ async function showInterstitialAd() {
     }
 }
 
+
 /* =========================================================
    PRELOAD ADS
 ========================================================= */
 
 async function preloadAds() {
 
+    const AdMob = getAdMob();
+
     if (!AdMob) {
+
+        console.warn(
+            "ADMOB: waiting for plugin..."
+        );
+
+        setTimeout(() => {
+
+            preloadAds();
+
+        }, 1500);
+
         return;
     }
 
@@ -530,15 +721,21 @@ async function preloadAds() {
         await initAdMob();
 
     if (!initialized) {
+
+        setTimeout(() => {
+
+            preloadAds();
+
+        }, 3000);
+
         return;
     }
 
-    /*
-        Загружаем обе рекламы заранее.
-    */
+    console.log(
+        "ADMOB: preloading ads..."
+    );
 
     prepareRewardedAd();
-
     prepareInterstitialAd();
 }
 
