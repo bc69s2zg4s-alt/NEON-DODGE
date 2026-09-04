@@ -33,6 +33,8 @@ jobs:
 
       - name: Prepare web files
         run: |
+          set -e
+
           rm -rf www
           mkdir -p www
 
@@ -41,6 +43,12 @@ jobs:
           cp game.js www/
           cp audio.js www/
 
+          echo "========================================="
+          echo "WEB FILES"
+          echo "========================================="
+
+          ls -lah www/
+
 
       # =====================================================
       # CREATE CAPACITOR PROJECT
@@ -48,13 +56,31 @@ jobs:
 
       - name: Create Capacitor project
         run: |
+          set -e
+
           npm init -y
 
           npm install \
-           @capacitor/core@8.0.0 \
-           @capacitor/cli@8.0.0 \
-           @capacitor/android@8.0.0 \
-           @capacitor-community/admob@8.0.0
+            @capacitor/core@8.0.0 \
+            @capacitor/cli@8.0.0 \
+            @capacitor/android@8.0.0 \
+            @capacitor-community/admob@8.0.0
+
+          echo "========================================="
+          echo "INSTALLED PACKAGES"
+          echo "========================================="
+
+          npm list \
+            @capacitor/core \
+            @capacitor/cli \
+            @capacitor/android \
+            @capacitor-community/admob
+
+          echo "========================================="
+          echo "CAPACITOR PLUGINS"
+          echo "========================================="
+
+          npx cap ls
 
           npx cap init \
             "NEON DODGE" \
@@ -65,13 +91,18 @@ jobs:
 
 
       # =====================================================
-      # ADD ADMOB APP ID
+      # CONFIGURE ADMOB
       # =====================================================
 
       - name: Configure AdMob Android App ID
         run: |
+          set -e
+
           python3 <<'PY'
           from pathlib import Path
+          import re
+
+          APP_ID = "ca-app-pub-7914086624525579~8190565290"
 
           manifest = Path(
               "android/app/src/main/AndroidManifest.xml"
@@ -81,11 +112,9 @@ jobs:
               "android/app/src/main/res/values/strings.xml"
           )
 
-          APP_ID = "ca-app-pub-7914086624525579~8190565290"
-
-          # -------------------------------------------------
-          # strings.xml
-          # -------------------------------------------------
+          # =================================================
+          # STRINGS.XML
+          # =================================================
 
           strings_text = strings.read_text()
 
@@ -94,14 +123,15 @@ jobs:
           )
 
           if 'name="admob_app_id"' in strings_text:
-              import re
 
               strings_text = re.sub(
                   r'<string\s+name="admob_app_id">.*?</string>',
                   admob_string,
                   strings_text
               )
+
           else:
+
               strings_text = strings_text.replace(
                   "</resources>",
                   f"    {admob_string}\n</resources>"
@@ -109,18 +139,22 @@ jobs:
 
           strings.write_text(strings_text)
 
-          # -------------------------------------------------
-          # AndroidManifest.xml
-          # -------------------------------------------------
+          # =================================================
+          # ANDROID MANIFEST
+          # =================================================
 
           manifest_text = manifest.read_text()
 
-          meta = '''
+          meta = """
           <meta-data
               android:name="com.google.android.gms.ads.APPLICATION_ID"
-              android:value="@string/admob_app_id" />'''
+              android:value="@string/admob_app_id" />
+          """
 
-          if "com.google.android.gms.ads.APPLICATION_ID" not in manifest_text:
+          if (
+              "com.google.android.gms.ads.APPLICATION_ID"
+              not in manifest_text
+          ):
 
               manifest_text = manifest_text.replace(
                   "</application>",
@@ -134,11 +168,56 @@ jobs:
 
 
       # =====================================================
+      # VERIFY ADMOB CONFIGURATION
+      # =====================================================
+
+      - name: Verify AdMob configuration
+        run: |
+          set -e
+
+          echo "========================================="
+          echo "VERIFYING ADMOB CONFIGURATION"
+          echo "========================================="
+
+          echo ""
+          echo "Package:"
+          grep -R "com.fxd.neondodge" \
+            android/app/src/main \
+            android/app/build.gradle \
+            android/app/build.gradle.kts \
+            2>/dev/null || true
+
+          echo ""
+          echo "AdMob App ID:"
+          grep -R \
+            "ca-app-pub-7914086624525579~8190565290" \
+            android/app/src/main \
+            || true
+
+          echo ""
+          echo "AdMob APPLICATION_ID:"
+          grep -R \
+            "com.google.android.gms.ads.APPLICATION_ID" \
+            android/app/src/main \
+            || true
+
+          echo ""
+          echo "AdMob plugin:"
+          npm list @capacitor-community/admob
+
+          echo ""
+          echo "Capacitor:"
+          npx cap ls
+
+
+      # =====================================================
       # COPY WEB FILES
       # =====================================================
 
       - name: Copy web files
         run: |
+          set -e
+
           npx cap copy android
 
 
@@ -148,7 +227,47 @@ jobs:
 
       - name: Sync Capacitor
         run: |
+          set -e
+
           npx cap sync android
+
+
+      # =====================================================
+      # VERIFY AFTER SYNC
+      # =====================================================
+
+      - name: Verify Android after Capacitor sync
+        run: |
+          set -e
+
+          echo "========================================="
+          echo "ANDROID PROJECT AFTER SYNC"
+          echo "========================================="
+
+          echo ""
+          echo "Capacitor plugins:"
+          npx cap ls
+
+          echo ""
+          echo "AdMob classes:"
+          find android \
+            -type f \
+            | grep -i "admob" \
+            | head -50 || true
+
+          echo ""
+          echo "AdMob App ID:"
+          grep -R \
+            "ca-app-pub-7914086624525579~8190565290" \
+            android/app/src/main \
+            || true
+
+          echo ""
+          echo "APPLICATION_ID:"
+          grep -R \
+            "com.google.android.gms.ads.APPLICATION_ID" \
+            android/app/src/main \
+            || true
 
 
       # =====================================================
@@ -189,6 +308,28 @@ jobs:
         run: |
           cd android
           ./gradlew assembleDebug --stacktrace
+
+
+      # =====================================================
+      # VERIFY APK
+      # =====================================================
+
+      - name: Verify APK
+        run: |
+          set -e
+
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+
+          echo "========================================="
+          echo "APK INFORMATION"
+          echo "========================================="
+
+          ls -lh "$APK"
+
+          echo ""
+          echo "APK SHA256:"
+
+          sha256sum "$APK"
 
 
       # =====================================================
