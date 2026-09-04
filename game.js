@@ -148,10 +148,10 @@ const ADMOB_APP_ID =
     "ca-app-pub-7914086624525579~8190565290";
 
 const ADMOB_REWARDED_ID =
-    "ca-app-pub-7914086624525579/4837005615";
+    "ca-app-pub-7914086624525579/4407584601";
 
 const ADMOB_INTERSTITIAL_ID =
-    "ca-app-pub-7914086624525579/1314517401";
+    "ca-app-pub-7914086624525579/7762551857";
 
 /*
     Interstitial показываем после
