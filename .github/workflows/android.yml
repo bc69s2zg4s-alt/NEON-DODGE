@@ -1,4 +1,4 @@
-name: Build NEON DODGE Android
+name: Build NEON DODGE Release
 on:
   workflow_dispatch:
 jobs:
@@ -26,7 +26,7 @@ jobs:
           cp style.css www/
           cp game.js www/
           cp audio.js www/
-      - name: Create native AdMob bridge
+      - name: Create AdMob bridge
         run: |
           cat > admob-bridge.js <<'EOF'
           import { AdMob } from "@capacitor-community/admob";
@@ -38,7 +38,7 @@ jobs:
             --format=iife \
             --platform=browser \
             --outfile=www/admob-bridge.js
-      - name: Inject AdMob bridge into index
+      - name: Inject AdMob bridge
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -58,7 +58,7 @@ jobs:
                   )
           p.write_text(s)
           PY
-      - name: Fix AdMob connection in game.js
+      - name: Fix game AdMob connection
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -91,7 +91,7 @@ jobs:
               )
           p.write_text(s)
           PY
-      - name: Capacitor init
+      - name: Initialize Capacitor
         run: |
           npx cap init \
             "NEON DODGE" \
@@ -100,7 +100,7 @@ jobs:
       - name: Add Android
         run: |
           npx cap add android
-      - name: Configure Android AdMob
+      - name: Configure AdMob App ID
         run: |
           mkdir -p android/app/src/main/res/values
           cat > android/app/src/main/res/values/strings.xml <<'EOF'
@@ -128,19 +128,54 @@ jobs:
               )
           manifest.write_text(s)
           PY
-      - name: Verify AdMob configuration
+      - name: Restore signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "===== ADMOB BRIDGE ====="
-          test -f www/admob-bridge.js
-          grep -n "NEON_DODGE_ADMOB" www/admob-bridge.js
-          echo "===== ADMOB APP ID ====="
-          grep -n "admob_app_id" \
-            android/app/src/main/res/values/strings.xml
-          echo "===== ADMOB MANIFEST ====="
-          grep -n "APPLICATION_ID" \
-            android/app/src/main/AndroidManifest.xml
-          echo "===== GAME ADMOB ====="
-          grep -n "__NEON_DODGE_ADMOB__" www/game.js
+          echo "$KEYSTORE_BASE64" | base64 --decode > neondodge-release.keystore
+          test -s neondodge-release.keystore
+          echo "Keystore restored successfully."
+      - name: Configure release signing
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+          signing = r'''
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file("../../neondodge-release.keystore")
+                      storePassword System.getenv("KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("KEY_ALIAS")
+                      keyPassword System.getenv("KEY_PASSWORD")
+                  }
+              }
+          }
+          '''
+          if "signingConfigs" not in s:
+              s = s.replace(
+                  "android {",
+                  signing,
+                  1
+              )
+          if "signingConfig signingConfigs.release" not in s:
+              s = s.replace(
+                  "buildTypes {",
+                  """buildTypes {
+              release {
+                  signingConfig signingConfigs.release
+              }
+          }
+          buildTypes {""",
+                  1
+              )
+          p.write_text(s)
+          PY
       - name: Sync Capacitor
         run: |
           npx cap copy android
@@ -150,14 +185,22 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - name: Build APK
+      - name: Build Release AAB
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           cd android
           chmod +x gradlew
           ./gradlew clean
-          ./gradlew assembleDebug --stacktrace
-      - name: Upload APK
+          ./gradlew bundleRelease --stacktrace
+      - name: Verify AAB
+        run: |
+          test -f android/app/build/outputs/bundle/release/app-release.aab
+          ls -lh android/app/build/outputs/bundle/release/app-release.aab
+      - name: Upload Release AAB
         uses: actions/upload-artifact@v4
         with:
-          name: NEON-DODGE-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: NEON-DODGE-RELEASE-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
