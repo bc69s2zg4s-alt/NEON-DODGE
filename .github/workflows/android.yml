@@ -12,7 +12,6 @@ jobs:
       # =====================================================
       # CHECKOUT
       # =====================================================
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -20,7 +19,6 @@ jobs:
       # =====================================================
       # NODE
       # =====================================================
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -30,7 +28,6 @@ jobs:
       # =====================================================
       # PREPARE WEB FILES
       # =====================================================
-
       - name: Prepare web files
         run: |
           set -e
@@ -46,15 +43,13 @@ jobs:
           echo "========================================="
           echo "WEB FILES"
           echo "========================================="
-
           ls -lah www/
 
 
       # =====================================================
-      # CREATE CAPACITOR PROJECT
+      # CREATE NODE PROJECT
       # =====================================================
-
-      - name: Create Capacitor project
+      - name: Create Node project
         run: |
           set -e
 
@@ -64,23 +59,121 @@ jobs:
             @capacitor/core@8.0.0 \
             @capacitor/cli@8.0.0 \
             @capacitor/android@8.0.0 \
-            @capacitor-community/admob@8.0.0
+            @capacitor-community/admob@8.0.0 \
+            esbuild
+
+
+      # =====================================================
+      # BUILD ADMOB JAVASCRIPT BRIDGE
+      # =====================================================
+      - name: Build AdMob JavaScript bridge
+        run: |
+          set -e
+
+          cat > admob-bridge.js <<'EOF'
+          import { AdMob } from "@capacitor-community/admob";
+
+          window.AdMob = AdMob;
+
+          if (window.Capacitor) {
+            if (!window.Capacitor.Plugins) {
+              window.Capacitor.Plugins = {};
+            }
+
+            window.Capacitor.Plugins.AdMob = AdMob;
+          }
+
+          console.log("NEON DODGE: AdMob JavaScript bridge loaded");
+          console.log("NEON DODGE: AdMob object:", AdMob);
+          EOF
+
+          npx esbuild admob-bridge.js \
+            --bundle \
+            --format=iife \
+            --platform=browser \
+            --outfile=www/admob-bridge.js
 
           echo "========================================="
-          echo "INSTALLED PACKAGES"
+          echo "ADMOB BRIDGE CREATED"
           echo "========================================="
 
-          npm list \
-            @capacitor/core \
-            @capacitor/cli \
-            @capacitor/android \
-            @capacitor-community/admob
+          ls -lh www/admob-bridge.js
+
+          grep -q "AdMob" www/admob-bridge.js
+
+          echo "AdMob bridge verification: OK"
+
+
+      # =====================================================
+      # INSERT ADMOB BRIDGE INTO INDEX.HTML
+      # =====================================================
+      - name: Connect AdMob bridge to index.html
+        run: |
+          set -e
+
+          python3 <<'PY'
+          from pathlib import Path
+
+          path = Path("www/index.html")
+          text = path.read_text()
+
+          bridge = '<script src="admob-bridge.js"></script>'
+
+          if "admob-bridge.js" not in text:
+              marker = '<script src="game.js"></script>'
+
+              if marker in text:
+                  text = text.replace(
+                      marker,
+                      bridge + "\n" + marker
+                  )
+              else:
+                  text = text.replace(
+                      "</body>",
+                      bridge + "\n</body>"
+                  )
+
+          path.write_text(text)
+
+          print("AdMob bridge connected to index.html")
+          PY
 
           echo "========================================="
-          echo "CAPACITOR PLUGINS"
+          echo "INDEX.HTML SCRIPTS"
           echo "========================================="
 
-          npx cap ls
+          grep -n "script" www/index.html
+
+
+      # =====================================================
+      # VERIFY WEB ADMOB BRIDGE
+      # =====================================================
+      - name: Verify web AdMob bridge
+        run: |
+          set -e
+
+          echo "========================================="
+          echo "VERIFYING ADMOB WEB BRIDGE"
+          echo "========================================="
+
+          test -f www/admob-bridge.js
+
+          grep -q "AdMob" www/admob-bridge.js
+
+          grep -q "admob-bridge.js" www/index.html
+
+          echo ""
+          echo "admob-bridge.js: FOUND"
+          echo "index.html connection: FOUND"
+          echo "AdMob JavaScript bridge: OK"
+
+
+      # =====================================================
+      # CREATE CAPACITOR PROJECT
+      # =====================================================
+      - name: Create Capacitor project
+        run: |
+          set -e
 
           npx cap init \
             "NEON DODGE" \
@@ -91,9 +184,8 @@ jobs:
 
 
       # =====================================================
-      # CONFIGURE ADMOB
+      # CONFIGURE ADMOB ANDROID APP ID
       # =====================================================
-
       - name: Configure AdMob Android App ID
         run: |
           set -e
@@ -123,15 +215,12 @@ jobs:
           )
 
           if 'name="admob_app_id"' in strings_text:
-
               strings_text = re.sub(
                   r'<string\s+name="admob_app_id">.*?</string>',
                   admob_string,
                   strings_text
               )
-
           else:
-
               strings_text = strings_text.replace(
                   "</resources>",
                   f"    {admob_string}\n</resources>"
@@ -146,16 +235,12 @@ jobs:
           manifest_text = manifest.read_text()
 
           meta = """
-          <meta-data
-              android:name="com.google.android.gms.ads.APPLICATION_ID"
-              android:value="@string/admob_app_id" />
+              <meta-data
+                  android:name="com.google.android.gms.ads.APPLICATION_ID"
+                  android:value="@string/admob_app_id" />
           """
 
-          if (
-              "com.google.android.gms.ads.APPLICATION_ID"
-              not in manifest_text
-          ):
-
+          if "com.google.android.gms.ads.APPLICATION_ID" not in manifest_text:
               manifest_text = manifest_text.replace(
                   "</application>",
                   f"{meta}\n    </application>"
@@ -168,38 +253,27 @@ jobs:
 
 
       # =====================================================
-      # VERIFY ADMOB CONFIGURATION
+      # VERIFY ADMOB ANDROID CONFIG
       # =====================================================
-
-      - name: Verify AdMob configuration
+      - name: Verify AdMob Android configuration
         run: |
           set -e
 
           echo "========================================="
-          echo "VERIFYING ADMOB CONFIGURATION"
+          echo "ADMOB ANDROID CONFIGURATION"
           echo "========================================="
 
           echo ""
-          echo "Package:"
-          grep -R "com.fxd.neondodge" \
-            android/app/src/main \
-            android/app/build.gradle \
-            android/app/build.gradle.kts \
-            2>/dev/null || true
-
-          echo ""
-          echo "AdMob App ID:"
+          echo "App ID:"
           grep -R \
             "ca-app-pub-7914086624525579~8190565290" \
-            android/app/src/main \
-            || true
+            android/app/src/main
 
           echo ""
-          echo "AdMob APPLICATION_ID:"
+          echo "APPLICATION_ID:"
           grep -R \
             "com.google.android.gms.ads.APPLICATION_ID" \
-            android/app/src/main \
-            || true
+            android/app/src/main
 
           echo ""
           echo "AdMob plugin:"
@@ -213,7 +287,6 @@ jobs:
       # =====================================================
       # COPY WEB FILES
       # =====================================================
-
       - name: Copy web files
         run: |
           set -e
@@ -224,7 +297,6 @@ jobs:
       # =====================================================
       # SYNC CAPACITOR
       # =====================================================
-
       - name: Sync Capacitor
         run: |
           set -e
@@ -235,7 +307,6 @@ jobs:
       # =====================================================
       # VERIFY AFTER SYNC
       # =====================================================
-
       - name: Verify Android after Capacitor sync
         run: |
           set -e
@@ -249,7 +320,7 @@ jobs:
           npx cap ls
 
           echo ""
-          echo "AdMob classes:"
+          echo "AdMob files:"
           find android \
             -type f \
             | grep -i "admob" \
@@ -271,9 +342,36 @@ jobs:
 
 
       # =====================================================
+      # VERIFY WEB FILES INSIDE ANDROID
+      # =====================================================
+      - name: Verify web files inside Android
+        run: |
+          set -e
+
+          echo "========================================="
+          echo "ANDROID WEB ASSETS"
+          echo "========================================="
+
+          find android/app/src/main/assets/public \
+            -maxdepth 1 \
+            -type f \
+            -printf "%f\n" \
+            | sort
+
+          echo ""
+          echo "Checking AdMob bridge..."
+
+          test -f android/app/src/main/assets/public/admob-bridge.js
+
+          grep -q "AdMob" \
+            android/app/src/main/assets/public/admob-bridge.js
+
+          echo "AdMob bridge inside APK assets: OK"
+
+
+      # =====================================================
       # JAVA
       # =====================================================
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -282,9 +380,8 @@ jobs:
 
 
       # =====================================================
-      # GRADLE
+      # GRADLE EXECUTABLE
       # =====================================================
-
       - name: Make Gradle executable
         run: |
           chmod +x android/gradlew
@@ -293,7 +390,6 @@ jobs:
       # =====================================================
       # CLEAN
       # =====================================================
-
       - name: Clean Android build
         run: |
           cd android
@@ -303,17 +399,16 @@ jobs:
       # =====================================================
       # BUILD APK
       # =====================================================
-
       - name: Build APK
         run: |
           cd android
+
           ./gradlew assembleDebug --stacktrace
 
 
       # =====================================================
       # VERIFY APK
       # =====================================================
-
       - name: Verify APK
         run: |
           set -e
@@ -323,6 +418,8 @@ jobs:
           echo "========================================="
           echo "APK INFORMATION"
           echo "========================================="
+
+          test -f "$APK"
 
           ls -lh "$APK"
 
@@ -335,7 +432,6 @@ jobs:
       # =====================================================
       # UPLOAD APK
       # =====================================================
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
