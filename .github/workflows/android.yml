@@ -1,21 +1,15 @@
 name: Build NEON DODGE Android
-
 on:
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-
       # =====================================================
       # CHECKOUT
       # =====================================================
       - name: Checkout
         uses: actions/checkout@v4
-
-
       # =====================================================
       # NODE
       # =====================================================
@@ -23,197 +17,176 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-
       # =====================================================
-      # PREPARE WEB FILES
+      # INSTALL PACKAGES
       # =====================================================
-      - name: Prepare web files
+      - name: Install Capacitor and AdMob
         run: |
           set -e
-
-          rm -rf www
-          mkdir -p www
-
-          cp index.html www/
-          cp style.css www/
-          cp game.js www/
-          cp audio.js www/
-
-          echo "========================================="
-          echo "WEB FILES"
-          echo "========================================="
-          ls -lah www/
-
-
-      # =====================================================
-      # CREATE NODE PROJECT
-      # =====================================================
-      - name: Create Node project
-        run: |
-          set -e
-
           npm init -y
-
           npm install \
             @capacitor/core@8.0.0 \
             @capacitor/cli@8.0.0 \
             @capacitor/android@8.0.0 \
             @capacitor-community/admob@8.0.0 \
             esbuild
-
-
       # =====================================================
-      # BUILD ADMOB JAVASCRIPT BRIDGE
+      # FIX GAME ADMOB REFERENCE
       # =====================================================
-      - name: Build AdMob JavaScript bridge
+      - name: Fix AdMob game integration
         run: |
           set -e
-
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path("game.js")
+          text = path.read_text()
+          old = '''function getAdMob() {
+              return window.Capacitor?.Plugins?.AdMob || null;
+          }'''
+          new = '''function getAdMob() {
+              return (
+                  window.__NEON_DODGE_ADMOB__ ||
+                  window.Capacitor?.Plugins?.AdMob ||
+                  null
+              );
+          }'''
+          if old in text:
+              text = text.replace(old, new, 1)
+              print("getAdMob() fixed.")
+          else:
+              print("getAdMob() already patched or format changed.")
+          old2 = '''    if (
+        shouldShowInterstitial &&
+        AdMob
+    ) {'''
+          new2 = '''    if (
+        shouldShowInterstitial &&
+        getAdMob()
+    ) {'''
+          if old2 in text:
+              text = text.replace(old2, new2, 1)
+              print("endGame() AdMob reference fixed.")
+          else:
+              print("endGame() reference already patched or format changed.")
+          path.write_text(text)
+          PY
+      # =====================================================
+      # CREATE ADMOB BRIDGE
+      # =====================================================
+      - name: Create AdMob JS bridge
+        run: |
+          set -e
           cat > admob-bridge.js <<'EOF'
           import { AdMob } from "@capacitor-community/admob";
-
-          window.AdMob = AdMob;
-
-          if (window.Capacitor) {
-            if (!window.Capacitor.Plugins) {
-              window.Capacitor.Plugins = {};
-            }
-
-            window.Capacitor.Plugins.AdMob = AdMob;
-          }
-
-          console.log("NEON DODGE: AdMob JavaScript bridge loaded");
-          console.log("NEON DODGE: AdMob object:", AdMob);
+          window.__NEON_DODGE_ADMOB__ = AdMob;
+          window.Capacitor = window.Capacitor || {};
+          window.Capacitor.Plugins =
+              window.Capacitor.Plugins || {};
+          window.Capacitor.Plugins.AdMob = AdMob;
+          console.log("NEON DODGE: AdMob JS bridge loaded");
           EOF
-
+          mkdir -p www
+      # =====================================================
+      # BUILD ADMOB BRIDGE
+      # =====================================================
+      - name: Build AdMob bridge
+        run: |
+          set -e
           npx esbuild admob-bridge.js \
             --bundle \
             --format=iife \
             --platform=browser \
             --outfile=www/admob-bridge.js
-
-          echo "========================================="
-          echo "ADMOB BRIDGE CREATED"
-          echo "========================================="
-
+          echo "AdMob bridge built:"
           ls -lh www/admob-bridge.js
-
-          grep -q "AdMob" www/admob-bridge.js
-
-          echo "AdMob bridge verification: OK"
-
-
       # =====================================================
-      # INSERT ADMOB BRIDGE INTO INDEX.HTML
+      # PREPARE WEB FILES
       # =====================================================
-      - name: Connect AdMob bridge to index.html
+      - name: Prepare web files
         run: |
           set -e
-
+          rm -rf www
+          mkdir -p www
+          cp index.html www/
+          cp style.css www/
+          cp game.js www/
+          cp audio.js www/
+          echo "========================================="
+          echo "WEB FILES"
+          echo "========================================="
+          ls -lah www/
+      # =====================================================
+      # REBUILD ADMOB BRIDGE AFTER WWW RESET
+      # =====================================================
+      - name: Build AdMob bridge into www
+        run: |
+          set -e
+          npx esbuild admob-bridge.js \
+            --bundle \
+            --format=iife \
+            --platform=browser \
+            --outfile=www/admob-bridge.js
+          echo "========================================="
+          echo "ADMOB BRIDGE"
+          echo "========================================="
+          ls -lh www/admob-bridge.js
+      # =====================================================
+      # INSERT ADMOB BRIDGE INTO INDEX
+      # =====================================================
+      - name: Insert AdMob bridge into index.html
+        run: |
+          set -e
           python3 <<'PY'
           from pathlib import Path
-
           path = Path("www/index.html")
           text = path.read_text()
-
           bridge = '<script src="admob-bridge.js"></script>'
-
-          if "admob-bridge.js" not in text:
-              marker = '<script src="game.js"></script>'
-
-              if marker in text:
-                  text = text.replace(
-                      marker,
-                      bridge + "\n" + marker
-                  )
-              else:
-                  text = text.replace(
-                      "</body>",
-                      bridge + "\n</body>"
-                  )
-
+          if bridge not in text:
+              text = text.replace(
+                  '<script src="audio.js"></script>',
+                  bridge + '\n<script src="audio.js"></script>'
+              )
           path.write_text(text)
-
-          print("AdMob bridge connected to index.html")
+          print("AdMob bridge inserted into index.html.")
           PY
-
           echo "========================================="
-          echo "INDEX.HTML SCRIPTS"
+          echo "SCRIPTS"
           echo "========================================="
-
-          grep -n "script" www/index.html
-
-
-      # =====================================================
-      # VERIFY WEB ADMOB BRIDGE
-      # =====================================================
-      - name: Verify web AdMob bridge
-        run: |
-          set -e
-
-          echo "========================================="
-          echo "VERIFYING ADMOB WEB BRIDGE"
-          echo "========================================="
-
-          test -f www/admob-bridge.js
-
-          grep -q "AdMob" www/admob-bridge.js
-
-          grep -q "admob-bridge.js" www/index.html
-
-          echo ""
-          echo "admob-bridge.js: FOUND"
-          echo "index.html connection: FOUND"
-          echo "AdMob JavaScript bridge: OK"
-
-
+          tail -20 www/index.html
       # =====================================================
       # CREATE CAPACITOR PROJECT
       # =====================================================
       - name: Create Capacitor project
         run: |
           set -e
-
           npx cap init \
             "NEON DODGE" \
             "com.fxd.neondodge" \
             --web-dir=www
-
           npx cap add android
-
-
       # =====================================================
-      # CONFIGURE ADMOB ANDROID APP ID
+      # CONFIGURE ADMOB ANDROID
       # =====================================================
       - name: Configure AdMob Android App ID
         run: |
           set -e
-
           python3 <<'PY'
           from pathlib import Path
           import re
-
           APP_ID = "ca-app-pub-7914086624525579~8190565290"
-
           manifest = Path(
               "android/app/src/main/AndroidManifest.xml"
           )
-
           strings = Path(
               "android/app/src/main/res/values/strings.xml"
           )
-
           # =================================================
           # STRINGS.XML
           # =================================================
-
           strings_text = strings.read_text()
-
           admob_string = (
               f'<string name="admob_app_id">{APP_ID}</string>'
           )
-
           if 'name="admob_app_id"' in strings_text:
               strings_text = re.sub(
                   r'<string\s+name="admob_app_id">.*?</string>',
@@ -225,150 +198,98 @@ jobs:
                   "</resources>",
                   f"    {admob_string}\n</resources>"
               )
-
           strings.write_text(strings_text)
-
           # =================================================
           # ANDROID MANIFEST
           # =================================================
-
           manifest_text = manifest.read_text()
-
           meta = """
               <meta-data
                   android:name="com.google.android.gms.ads.APPLICATION_ID"
                   android:value="@string/admob_app_id" />
           """
-
-          if "com.google.android.gms.ads.APPLICATION_ID" not in manifest_text:
+          if (
+              "com.google.android.gms.ads.APPLICATION_ID"
+              not in manifest_text
+          ):
               manifest_text = manifest_text.replace(
                   "</application>",
                   f"{meta}\n    </application>"
               )
-
           manifest.write_text(manifest_text)
-
           print("AdMob App ID configured.")
           PY
-
-
       # =====================================================
-      # VERIFY ADMOB ANDROID CONFIG
+      # VERIFY ADMOB BEFORE SYNC
       # =====================================================
-      - name: Verify AdMob Android configuration
+      - name: Verify AdMob web integration
         run: |
           set -e
-
           echo "========================================="
-          echo "ADMOB ANDROID CONFIGURATION"
+          echo "ADMOB WEB INTEGRATION"
           echo "========================================="
-
+          test -f www/admob-bridge.js
+          grep -q "admob-bridge.js" www/index.html
+          grep -q "ADMOB_REWARDED_ID" www/game.js
+          grep -q "ADMOB_INTERSTITIAL_ID" www/game.js
+          echo "Bridge:"
+          ls -lh www/admob-bridge.js
           echo ""
-          echo "App ID:"
-          grep -R \
-            "ca-app-pub-7914086624525579~8190565290" \
-            android/app/src/main
-
+          echo "Rewarded:"
+          grep -n "4407584601" www/game.js
           echo ""
-          echo "APPLICATION_ID:"
-          grep -R \
-            "com.google.android.gms.ads.APPLICATION_ID" \
-            android/app/src/main
-
+          echo "Interstitial:"
+          grep -n "7762551857" www/game.js
           echo ""
-          echo "AdMob plugin:"
-          npm list @capacitor-community/admob
-
-          echo ""
-          echo "Capacitor:"
-          npx cap ls
-
-
+          echo "WEB ADMOB CHECK: OK"
       # =====================================================
       # COPY WEB FILES
       # =====================================================
       - name: Copy web files
         run: |
           set -e
-
           npx cap copy android
-
-
       # =====================================================
       # SYNC CAPACITOR
       # =====================================================
       - name: Sync Capacitor
         run: |
           set -e
-
           npx cap sync android
-
-
       # =====================================================
-      # VERIFY AFTER SYNC
+      # VERIFY NATIVE ADMOB
       # =====================================================
-      - name: Verify Android after Capacitor sync
+      - name: Verify Android AdMob
         run: |
           set -e
-
           echo "========================================="
-          echo "ANDROID PROJECT AFTER SYNC"
+          echo "ANDROID ADMOB"
           echo "========================================="
-
           echo ""
           echo "Capacitor plugins:"
           npx cap ls
-
           echo ""
-          echo "AdMob files:"
-          find android \
-            -type f \
-            | grep -i "admob" \
-            | head -50 || true
-
+          echo "AdMob plugin:"
+          npm list @capacitor-community/admob
           echo ""
-          echo "AdMob App ID:"
+          echo "App ID:"
           grep -R \
             "ca-app-pub-7914086624525579~8190565290" \
             android/app/src/main \
             || true
-
           echo ""
           echo "APPLICATION_ID:"
           grep -R \
             "com.google.android.gms.ads.APPLICATION_ID" \
             android/app/src/main \
             || true
-
-
-      # =====================================================
-      # VERIFY WEB FILES INSIDE ANDROID
-      # =====================================================
-      - name: Verify web files inside Android
-        run: |
-          set -e
-
-          echo "========================================="
-          echo "ANDROID WEB ASSETS"
-          echo "========================================="
-
-          find android/app/src/main/assets/public \
-            -maxdepth 1 \
-            -type f \
-            -printf "%f\n" \
-            | sort
-
           echo ""
-          echo "Checking AdMob bridge..."
-
-          test -f android/app/src/main/assets/public/admob-bridge.js
-
-          grep -q "AdMob" \
-            android/app/src/main/assets/public/admob-bridge.js
-
-          echo "AdMob bridge inside APK assets: OK"
-
-
+          echo "AdMob native files:"
+          find android \
+            -type f \
+            | grep -i "admob" \
+            | head -50 \
+            || true
       # =====================================================
       # JAVA
       # =====================================================
@@ -377,16 +298,12 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-
-
       # =====================================================
-      # GRADLE EXECUTABLE
+      # GRADLE
       # =====================================================
       - name: Make Gradle executable
         run: |
           chmod +x android/gradlew
-
-
       # =====================================================
       # CLEAN
       # =====================================================
@@ -394,41 +311,27 @@ jobs:
         run: |
           cd android
           ./gradlew clean
-
-
       # =====================================================
       # BUILD APK
       # =====================================================
       - name: Build APK
         run: |
           cd android
-
           ./gradlew assembleDebug --stacktrace
-
-
       # =====================================================
       # VERIFY APK
       # =====================================================
       - name: Verify APK
         run: |
           set -e
-
           APK="android/app/build/outputs/apk/debug/app-debug.apk"
-
           echo "========================================="
           echo "APK INFORMATION"
           echo "========================================="
-
-          test -f "$APK"
-
           ls -lh "$APK"
-
           echo ""
           echo "APK SHA256:"
-
           sha256sum "$APK"
-
-
       # =====================================================
       # UPLOAD APK
       # =====================================================
