@@ -8,44 +8,152 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # =====================================================
+      # CHECKOUT
+      # =====================================================
+
       - name: Checkout
         uses: actions/checkout@v4
+
+
+      # =====================================================
+      # NODE
+      # =====================================================
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+
+
+      # =====================================================
+      # PREPARE WEB FILES
+      # =====================================================
 
       - name: Prepare web files
         run: |
-          mkdir www
+          rm -rf www
+          mkdir -p www
+
           cp index.html www/
           cp style.css www/
           cp game.js www/
           cp audio.js www/
 
+
+      # =====================================================
+      # CREATE CAPACITOR PROJECT
+      # =====================================================
+
       - name: Create Capacitor project
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
+
+          npm install \
+            @capacitor/core \
+            @capacitor/cli \
+            @capacitor/android \
+            @capacitor-community/admob
+
+          npx cap init \
+            "NEON DODGE" \
+            "com.fxd.neondodge" \
+            --web-dir=www
+
           npx cap add android
+
+
+      # =====================================================
+      # ADD ADMOB APP ID
+      # =====================================================
+
+      - name: Configure AdMob Android App ID
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          manifest = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+
+          strings = Path(
+              "android/app/src/main/res/values/strings.xml"
+          )
+
+          APP_ID = "ca-app-pub-7914086624525579~8190565290"
+
+          # -------------------------------------------------
+          # strings.xml
+          # -------------------------------------------------
+
+          strings_text = strings.read_text()
+
+          admob_string = (
+              f'<string name="admob_app_id">{APP_ID}</string>'
+          )
+
+          if 'name="admob_app_id"' in strings_text:
+              import re
+
+              strings_text = re.sub(
+                  r'<string\s+name="admob_app_id">.*?</string>',
+                  admob_string,
+                  strings_text
+              )
+          else:
+              strings_text = strings_text.replace(
+                  "</resources>",
+                  f"    {admob_string}\n</resources>"
+              )
+
+          strings.write_text(strings_text)
+
+          # -------------------------------------------------
+          # AndroidManifest.xml
+          # -------------------------------------------------
+
+          manifest_text = manifest.read_text()
+
+          meta = '''
+          <meta-data
+              android:name="com.google.android.gms.ads.APPLICATION_ID"
+              android:value="@string/admob_app_id" />'''
+
+          if "com.google.android.gms.ads.APPLICATION_ID" not in manifest_text:
+
+              manifest_text = manifest_text.replace(
+                  "</application>",
+                  f"{meta}\n    </application>"
+              )
+
+          manifest.write_text(manifest_text)
+
+          print("AdMob App ID configured.")
+          PY
+
+
+      # =====================================================
+      # COPY WEB FILES
+      # =====================================================
+
+      - name: Copy web files
+        run: |
           npx cap copy android
 
-      - name: Fix Kotlin dependencies
-        run: |
-          cat >> android/build.gradle <<'EOF'
 
-          allprojects {
-              configurations.configureEach {
-                  resolutionStrategy.eachDependency { details ->
-                      if (details.requested.group == "org.jetbrains.kotlin") {
-                          details.useVersion("1.8.22")
-                      }
-                  }
-              }
-          }
-          EOF
+      # =====================================================
+      # SYNC CAPACITOR
+      # =====================================================
+
+      - name: Sync Capacitor
+        run: |
+          npx cap sync android
+
+
+      # =====================================================
+      # JAVA
+      # =====================================================
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -53,16 +161,39 @@ jobs:
           distribution: temurin
           java-version: 21
 
+
+      # =====================================================
+      # GRADLE
+      # =====================================================
+
+      - name: Make Gradle executable
+        run: |
+          chmod +x android/gradlew
+
+
+      # =====================================================
+      # CLEAN
+      # =====================================================
+
       - name: Clean Android build
         run: |
           cd android
           ./gradlew clean
 
+
+      # =====================================================
+      # BUILD APK
+      # =====================================================
+
       - name: Build APK
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
+
+
+      # =====================================================
+      # UPLOAD APK
+      # =====================================================
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
