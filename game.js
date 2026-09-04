@@ -62,7 +62,7 @@ if (!saveData) {
 
     saveData.crystals = Math.max(
         saveData.crystals,
-        300
+        0
     );
 
     saveData.adLossCount =
