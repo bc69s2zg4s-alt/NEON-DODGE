@@ -51,10 +51,10 @@ jobs:
           npm init -y
 
           npm install \
-            @capacitor/core \
-            @capacitor/cli \
-            @capacitor/android \
-            @capacitor-community/admob
+           @capacitor/core@8.0.0 \
+           @capacitor/cli@8.0.0 \
+           @capacitor/android@8.0.0 \
+           @capacitor-community/admob@8.0.0
 
           npx cap init \
             "NEON DODGE" \
