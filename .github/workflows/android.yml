@@ -18,7 +18,8 @@ jobs:
             @capacitor/core@8.0.0 \
             @capacitor/cli@8.0.0 \
             @capacitor/android@8.0.0 \
-            @capacitor-community/admob@8.0.0
+            @capacitor-community/admob@8.0.0 \
+            esbuild
       - name: Prepare web files
         run: |
           rm -rf www
@@ -27,61 +28,142 @@ jobs:
           cp style.css www/
           cp game.js www/
           cp audio.js www/
+      # =====================================================
+      # FIX GAME ADMOB CONNECTION
+      # =====================================================
+      - name: Fix game AdMob connection
+        run: |
+          python3 -c 'from pathlib import Path; p=Path("www/game.js"); s=p.read_text(); s=s.replace("return window.Capacitor?.Plugins?.AdMob || null;", "return window.__NEON_DODGE_ADMOB__ || window.Capacitor?.Plugins?.AdMob || null;"); s=s.replace("shouldShowInterstitial &&\n        AdMob", "shouldShowInterstitial &&\n        getAdMob()"); p.write_text(s)'
+      # =====================================================
+      # CREATE ADMOB BRIDGE
+      # =====================================================
+      - name: Create AdMob bridge
+        run: |
+          cat > admob-bridge.js <<'EOF'
+          import { AdMob } from "@capacitor-community/admob";
+          window.__NEON_DODGE_ADMOB__ = AdMob;
+          window.Capacitor = window.Capacitor || {};
+          window.Capacitor.Plugins = window.Capacitor.Plugins || {};
+          window.Capacitor.Plugins.AdMob = AdMob;
+          console.log("NEON DODGE: ADMOB BRIDGE READY");
+          EOF
+      # =====================================================
+      # BUILD ADMOB BRIDGE
+      # =====================================================
+      - name: Build AdMob bridge
+        run: |
+          npx esbuild admob-bridge.js \
+            --bundle \
+            --format=iife \
+            --platform=browser \
+            --outfile=www/admob-bridge.js
+          test -s www/admob-bridge.js
+          echo "AdMob bridge created successfully."
+      # =====================================================
+      # LOAD BRIDGE BEFORE GAME
+      # =====================================================
+      - name: Insert AdMob bridge
+        run: |
+          python3 -c 'from pathlib import Path; p=Path("www/index.html"); s=p.read_text(); bridge="<script src=\"admob-bridge.js\"></script>"; s=s.replace("<script src=\"audio.js\"></script>", bridge+"\n<script src=\"audio.js\"></script>"); p.write_text(s)'
+          grep -q "admob-bridge.js" www/index.html
+          echo "AdMob bridge inserted into index.html."
+      # =====================================================
+      # CREATE CAPACITOR
+      # =====================================================
       - name: Create Capacitor project
         run: |
-          npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir=www
+          npx cap init \
+            "NEON DODGE" \
+            "com.fxd.neondodge" \
+            --web-dir=www
           npx cap add android
-      - name: Configure AdMob
+      # =====================================================
+      # CONFIGURE ADMOB APP ID
+      # =====================================================
+      - name: Configure AdMob Android
         run: |
-          python3 <<'PY'
-          from pathlib import Path
-          APP_ID = "ca-app-pub-7914086624525579~8190565290"
-          strings = Path(
-              "android/app/src/main/res/values/strings.xml"
-          )
-          text = strings.read_text()
-          text = text.replace(
-              "</resources>",
-              f'    <string name="admob_app_id">{APP_ID}</string>\n</resources>'
-          )
-          strings.write_text(text)
-          manifest = Path(
-              "android/app/src/main/AndroidManifest.xml"
-          )
-          text = manifest.read_text()
-          meta = """
-              <meta-data
-                  android:name="com.google.android.gms.ads.APPLICATION_ID"
-                  android:value="@string/admob_app_id" />
-          """
-          text = text.replace(
-              "</application>",
-              meta + "\n    </application>"
-          )
-          manifest.write_text(text)
-          PY
+          python3 -c 'from pathlib import Path; p=Path("android/app/src/main/res/values/strings.xml"); s=p.read_text(); app="ca-app-pub-7914086624525579~8190565290"; s=s.replace("</resources>", f"<string name=\"admob_app_id\">{app}</string>\n</resources>"); p.write_text(s)'
+          python3 -c 'from pathlib import Path; p=Path("android/app/src/main/AndroidManifest.xml"); s=p.read_text(); meta="<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"@string/admob_app_id\" />"; s=s.replace("</application>", meta+"\n</application>"); p.write_text(s)'
+      # =====================================================
+      # CAPACITOR COPY / SYNC
+      # =====================================================
       - name: Copy web files
         run: |
           npx cap copy android
       - name: Sync Capacitor
         run: |
           npx cap sync android
+      # =====================================================
+      # VERIFY ADMOB
+      # =====================================================
+      - name: Verify AdMob configuration
+        run: |
+          echo "========================================="
+          echo "NEON DODGE ADMOB CHECK"
+          echo "========================================="
+          echo ""
+          echo "Bridge:"
+          test -s www/admob-bridge.js
+          echo "OK"
+          echo ""
+          echo "Game AdMob:"
+          grep -q "__NEON_DODGE_ADMOB__" www/game.js
+          echo "OK"
+          echo ""
+          echo "Rewarded ID:"
+          grep -q "ca-app-pub-7914086624525579/4407584601" www/game.js
+          echo "OK"
+          echo ""
+          echo "Interstitial ID:"
+          grep -q "ca-app-pub-7914086624525579/7762551857" www/game.js
+          echo "OK"
+          echo ""
+          echo "Android App ID:"
+          grep -R "ca-app-pub-7914086624525579~8190565290" \
+            android/app/src/main \
+            || true
+          echo ""
+          echo "AdMob plugin:"
+          npm list @capacitor-community/admob
+          echo ""
+          echo "========================================="
+          echo "ADMOB CONFIGURATION OK"
+          echo "========================================="
+      # =====================================================
+      # JAVA
+      # =====================================================
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+      # =====================================================
+      # GRADLE
+      # =====================================================
       - name: Make Gradle executable
         run: |
           chmod +x android/gradlew
-      - name: Clean
+      - name: Clean Android
         run: |
           cd android
           ./gradlew clean
+      # =====================================================
+      # BUILD APK
+      # =====================================================
       - name: Build APK
         run: |
           cd android
           ./gradlew assembleDebug --stacktrace
+      # =====================================================
+      # CHECK APK
+      # =====================================================
+      - name: Verify APK
+        run: |
+          test -f android/app/build/outputs/apk/debug/app-debug.apk
+          ls -lh android/app/build/outputs/apk/debug/app-debug.apk
+      # =====================================================
+      # UPLOAD APK
+      # =====================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
