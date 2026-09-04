@@ -14,7 +14,12 @@ jobs:
       - name: Prepare project
         run: |
           npm init -y
-          npm install @capacitor/core@8.0.0 @capacitor/cli@8.0.0 @capacitor/android@8.0.0 @capacitor-community/admob@8.0.0 esbuild
+          npm install \
+            @capacitor/core@8.0.0 \
+            @capacitor/cli@8.0.0 \
+            @capacitor/android@8.0.0 \
+            @capacitor-community/admob@8.0.0 \
+            esbuild
           rm -rf www
           mkdir -p www
           cp index.html www/
@@ -26,9 +31,6 @@ jobs:
           cat > admob-bridge.js <<'EOF'
           import { AdMob } from "@capacitor-community/admob";
           window.__NEON_DODGE_ADMOB__ = AdMob;
-          window.dispatchEvent(
-            new CustomEvent("neon-admob-ready")
-          );
           console.log("NEON DODGE: NATIVE ADMOB BRIDGE READY");
           EOF
           npx esbuild admob-bridge.js \
@@ -36,21 +38,27 @@ jobs:
             --format=iife \
             --platform=browser \
             --outfile=www/admob-bridge.js
-      - name: Inject AdMob bridge
+      - name: Inject AdMob bridge into index
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p = Path("www/index.html")
           s = p.read_text()
+          bridge = '<script src="admob-bridge.js"></script>'
           if "admob-bridge.js" not in s:
-              s = s.replace(
-                  '<script src="audio.js"></script>',
-                  '<script src="admob-bridge.js"></script>\n'
-                  '<script src="audio.js"></script>'
-              )
+              if '<script src="audio.js"></script>' in s:
+                  s = s.replace(
+                      '<script src="audio.js"></script>',
+                      bridge + '\n<script src="audio.js"></script>'
+                  )
+              else:
+                  s = s.replace(
+                      '</body>',
+                      bridge + '\n</body>'
+                  )
           p.write_text(s)
           PY
-      - name: Fix game AdMob connection
+      - name: Fix AdMob connection in game.js
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -68,46 +76,71 @@ jobs:
           }'''
           if old in s:
               s = s.replace(old, new)
-          s = s.replace(
-              '''if (
+          old_interstitial = '''if (
               shouldShowInterstitial &&
               AdMob
-          ) {''',
-              '''if (
+          ) {'''
+          new_interstitial = '''if (
               shouldShowInterstitial &&
               getAdMob()
           ) {'''
-          )
+          if old_interstitial in s:
+              s = s.replace(
+                  old_interstitial,
+                  new_interstitial
+              )
           p.write_text(s)
           PY
       - name: Capacitor init
         run: |
-          npx cap init "NEON DODGE" "com.fxd.neondodge" --web-dir www
+          npx cap init \
+            "NEON DODGE" \
+            "com.fxd.neondodge" \
+            --web-dir www
       - name: Add Android
         run: |
           npx cap add android
-      - name: Configure AdMob App ID
+      - name: Configure Android AdMob
         run: |
           mkdir -p android/app/src/main/res/values
           cat > android/app/src/main/res/values/strings.xml <<'EOF'
           <resources>
               <string name="app_name">NEON DODGE</string>
+              <string name="title_activity_main">NEON DODGE</string>
               <string name="admob_app_id">ca-app-pub-7914086624525579~8190565290</string>
           </resources>
           EOF
           python3 - <<'PY'
           from pathlib import Path
-          p = Path("android/app/src/main/AndroidManifest.xml")
-          s = p.read_text()
+          manifest = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+          s = manifest.read_text()
           meta = '''
               <meta-data
                   android:name="com.google.android.gms.ads.APPLICATION_ID"
                   android:value="@string/admob_app_id" />
           '''
           if "com.google.android.gms.ads.APPLICATION_ID" not in s:
-              s = s.replace("</application>", meta + "\n    </application>")
-          p.write_text(s)
+              s = s.replace(
+                  "</application>",
+                  meta + "\n    </application>"
+              )
+          manifest.write_text(s)
           PY
+      - name: Verify AdMob configuration
+        run: |
+          echo "===== ADMOB BRIDGE ====="
+          test -f www/admob-bridge.js
+          grep -n "NEON_DODGE_ADMOB" www/admob-bridge.js
+          echo "===== ADMOB APP ID ====="
+          grep -n "admob_app_id" \
+            android/app/src/main/res/values/strings.xml
+          echo "===== ADMOB MANIFEST ====="
+          grep -n "APPLICATION_ID" \
+            android/app/src/main/AndroidManifest.xml
+          echo "===== GAME ADMOB ====="
+          grep -n "__NEON_DODGE_ADMOB__" www/game.js
       - name: Sync Capacitor
         run: |
           npx cap copy android
