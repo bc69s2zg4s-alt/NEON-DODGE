@@ -3216,3 +3216,87 @@ a {
         filter: blur(50px);
     }
 }
+
+/* =========================================================
+   NEON DODGE — BACKGROUND FOR ALL UI SCREENS
+   ========================================================= */
+
+/* Все меню — отдельный фон, не игровой canvas */
+#menu,
+#shopPanel,
+#settingsPanel,
+#feedbackPanel,
+#dailyPanel,
+#gameOver,
+#pauseScreen {
+
+    background:
+        radial-gradient(
+            circle at 50% 25%,
+            rgba(0, 210, 255, 0.08),
+            transparent 38%
+        ),
+        radial-gradient(
+            circle at 80% 65%,
+            rgba(255, 0, 190, 0.06),
+            transparent 35%
+        ),
+        #020308 !important;
+
+    overflow: hidden;
+}
+
+
+/* Сам canvas не должен просвечивать через интерфейс */
+#menu::before,
+#shopPanel::before,
+#settingsPanel::before,
+#feedbackPanel::before,
+#dailyPanel::before,
+#gameOver::before,
+#pauseScreen::before {
+
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(3, 6, 15, 0.25),
+            rgba(2, 3, 9, 0.72)
+        ),
+        radial-gradient(
+            ellipse at 50% 45%,
+            rgba(0, 180, 255, 0.08),
+            transparent 60%
+        );
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+
+/* Контент всех экранов выше фона */
+#menu > *,
+#shopPanel > *,
+#settingsPanel > *,
+#feedbackPanel > *,
+#dailyPanel > *,
+#gameOver > *,
+#pauseScreen > * {
+
+    position: relative;
+    z-index: 2;
+}
+
+
+/* Игровой canvas остаётся под интерфейсом */
+#gameCanvas {
+    z-index: 0;
+}
