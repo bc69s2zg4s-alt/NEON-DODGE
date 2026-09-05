@@ -1,275 +1,1578 @@
-/* =========================================================
-   NEON DODGE — MODERN ICON UI
-   ========================================================= */
+:root {
+    --bg: #05070d;
+    --panel: rgba(12, 17, 29, .72);
+    --panel-strong: rgba(15, 21, 36, .9);
 
-svg {
-    display: block;
+    --cyan: #00e5ff;
+    --blue: #4d7cff;
+    --purple: #8b5cff;
+    --pink: #ff3d9a;
+
+    --text: #f7fbff;
+    --muted: rgba(235, 244, 255, .48);
+
+    --line: rgba(255,255,255,.10);
+    --line-blue: rgba(0,229,255,.24);
+
+    --radius: 22px;
+    --shadow:
+        0 20px 70px rgba(0,0,0,.48),
+        inset 0 1px 0 rgba(255,255,255,.05);
 }
 
-.button-icon {
-    width: 22px;
-    height: 22px;
-    display: inline-flex;
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(0,229,255,.08),
+            transparent 35%
+        ),
+        #05070d;
+
+    color: var(--text);
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "SF Pro Text",
+        Inter,
+        Arial,
+        sans-serif;
+
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    touch-action: none;
+}
+
+button,
+a {
+    font-family: inherit;
+}
+
+button {
+    border: 0;
+    outline: none;
+    cursor: pointer;
+}
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+canvas {
+    position: fixed;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    background:
+        radial-gradient(
+            circle at 50% 45%,
+            rgba(0,120,255,.07),
+            transparent 45%
+        ),
+        #05070d;
+}
+
+/* =========================================================
+   GLOBAL SCREEN
+========================================================= */
+
+.screen {
+    position: fixed;
+    inset: 0;
+
+    z-index: 20;
+
+    display: none;
+
     align-items: center;
     justify-content: center;
-    flex: 0 0 22px;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+    padding:
+        max(20px, env(safe-area-inset-top))
+        20px
+        max(20px, env(safe-area-inset-bottom));
+
+    background:
+        radial-gradient(
+            ellipse at 50% 15%,
+            rgba(0,229,255,.10),
+            transparent 34%
+        ),
+        radial-gradient(
+            ellipse at 80% 90%,
+            rgba(139,92,255,.08),
+            transparent 32%
+        ),
+        rgba(3,5,12,.76);
+
+    backdrop-filter: blur(22px) saturate(135%);
+    -webkit-backdrop-filter: blur(22px) saturate(135%);
 }
 
-.button-icon svg {
-    width: 20px;
-    height: 20px;
+.screen::before {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            rgba(255,255,255,.015) 1px,
+            transparent 1px
+        );
+
+    background-size: 100% 4px;
+
+    opacity: .25;
 }
+
+.screen.active {
+    display: flex;
+    animation: screenIn .28s ease both;
+}
+
+@keyframes screenIn {
+    from {
+        opacity: 0;
+        transform: scale(1.025);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* =========================================================
+   MAIN LOGO
+========================================================= */
+
+.logo {
+    position: relative;
+
+    text-align: center;
+
+    font-size: clamp(58px, 17vw, 100px);
+    line-height: .78;
+
+    font-weight: 950;
+
+    letter-spacing: -5px;
+
+    color: #f7fbff;
+
+    text-shadow:
+        0 0 8px rgba(255,255,255,.85),
+        0 0 22px rgba(0,229,255,.75),
+        0 0 55px rgba(0,120,255,.42);
+
+    animation: logoFloat 4s ease-in-out infinite;
+}
+
+.logo::after {
+    content: "";
+
+    position: absolute;
+
+    left: 8%;
+    right: 8%;
+    bottom: -16px;
+
+    height: 1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--cyan),
+            transparent
+        );
+
+    box-shadow:
+        0 0 15px var(--cyan);
+}
+
+.logo span {
+    display: block;
+
+    margin-top: 8px;
+
+    font-size: .31em;
+
+    font-weight: 800;
+
+    letter-spacing: 14px;
+
+    color: var(--cyan);
+
+    text-shadow:
+        0 0 12px rgba(0,229,255,.9);
+}
+
+@keyframes logoFloat {
+    0%,100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+.menu-subtitle {
+    margin-top: 30px;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 5px;
+
+    color: rgba(255,255,255,.42);
+
+    text-align: center;
+}
+
+/* =========================================================
+   MAIN MENU
+========================================================= */
+
+.menu-buttons {
+    width: min(390px, 92vw);
+
+    margin-top: 36px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+/* All normal buttons */
 
 .main-btn {
+    position: relative;
+
+    width: 100%;
+    min-height: 58px;
+
+    padding: 15px 22px;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 11px;
-}
 
-.main-btn.primary-btn {
-    min-height: 62px;
-    border-color: rgba(0, 235, 255, .75);
+    gap: 10px;
+
+    color: var(--text);
+
+    border-radius: 18px;
+
+    border: 1px solid rgba(255,255,255,.10);
+
     background:
         linear-gradient(
             135deg,
-            rgba(0, 235, 255, .22),
-            rgba(50, 70, 255, .14)
+            rgba(255,255,255,.075),
+            rgba(255,255,255,.025)
         );
+
     box-shadow:
-        0 0 20px rgba(0, 220, 255, .13),
-        inset 0 0 25px rgba(0, 220, 255, .06);
+        0 8px 30px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.06);
+
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    font-size: 13px;
+    font-weight: 800;
+
+    letter-spacing: 2.5px;
+
+    transition:
+        transform .16s ease,
+        border-color .16s ease,
+        box-shadow .16s ease,
+        background .16s ease;
 }
 
-.main-btn.primary-btn .button-icon {
-    color: #00eaff;
+.main-btn::before {
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    border-radius: inherit;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            110deg,
+            transparent 20%,
+            rgba(255,255,255,.07) 50%,
+            transparent 80%
+        );
+
+    opacity: 0;
+    transition: opacity .2s;
 }
 
-.main-btn:hover {
-    border-color: rgba(0, 240, 255, .8);
+.main-btn:active {
+    transform: scale(.965);
+
+    border-color: rgba(0,229,255,.45);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,229,255,.13),
+            rgba(75,80,255,.10)
+        );
+
+    box-shadow:
+        0 0 30px rgba(0,229,255,.15),
+        inset 0 1px 0 rgba(255,255,255,.10);
 }
 
-.ui-icon {
-    width: 19px;
-    height: 19px;
+.main-btn:active::before {
+    opacity: 1;
 }
 
-.heart-icon {
-    color: #ff4f8b;
-    filter: drop-shadow(0 0 7px rgba(255, 60, 120, .55));
+/* PLAY */
+
+#playButton {
+    min-height: 70px;
+
+    border-color: rgba(0,229,255,.48);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,229,255,.20),
+            rgba(77,124,255,.14)
+        );
+
+    box-shadow:
+        0 0 35px rgba(0,229,255,.10),
+        0 12px 45px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.13);
+
+    font-size: 16px;
+
+    letter-spacing: 4px;
 }
 
-.gem-icon,
-.currency-icon {
-    color: #00eaff;
-    filter: drop-shadow(0 0 8px rgba(0, 230, 255, .65));
+#playButton::after {
+    content: "";
+
+    position: absolute;
+
+    inset: 5px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(0,229,255,.12);
+
+    pointer-events: none;
 }
 
-.ability-icon {
-    width: 21px;
-    height: 21px;
-    margin: 0 auto 2px;
+#playButton span {
+    color: var(--cyan);
+
+    text-shadow:
+        0 0 12px var(--cyan);
 }
 
-.mini-btn svg {
-    width: 19px;
-    height: 19px;
-    margin: auto;
+/* Other main buttons */
+
+#shopButton,
+#settingsButton,
+#feedbackButton,
+#dailyButton {
+    min-height: 52px;
+
+    background:
+        rgba(255,255,255,.045);
+
+    border-color: rgba(255,255,255,.075);
+
+    color: rgba(255,255,255,.82);
 }
+
+/* =========================================================
+   CURRENCY
+========================================================= */
 
 .menu-crystals {
+    margin-top: 18px;
+
+    min-width: 110px;
+    height: 38px;
+
+    padding: 0 15px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     gap: 8px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(8,15,28,.72);
+
+    border: 1px solid rgba(0,229,255,.18);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 8px 30px rgba(0,0,0,.25);
+
+    color: #fff;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
 }
 
-.menu-crystals .currency-icon {
-    width: 20px;
-    height: 20px;
-}
+/* =========================================================
+   PANEL HEADER
+========================================================= */
 
-.panel-currency {
+.panel-header {
+    position: absolute;
+
+    top: max(18px, env(safe-area-inset-top));
+
+    left: 18px;
+    right: 18px;
+
+    height: 48px;
+
     display: flex;
+
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+
+    z-index: 5;
 }
 
-.panel-currency .currency-icon {
-    width: 18px;
-    height: 18px;
+.panel-header h2 {
+    margin: 0;
+
+    font-size: 17px;
+    font-weight: 850;
+
+    letter-spacing: 3px;
+
+    color: rgba(255,255,255,.94);
 }
 
 .back-btn {
+    position: absolute;
+
+    left: 0;
+
+    width: 46px;
+    height: 46px;
+
     display: flex;
     align-items: center;
     justify-content: center;
-}
 
-.back-btn svg {
-    width: 22px;
-    height: 22px;
-}
+    border-radius: 15px;
 
-.upgrade-icon {
-    color: #00eaff;
+    color: white;
+
+    background:
+        rgba(255,255,255,.055);
+
+    border: 1px solid rgba(255,255,255,.10);
+
+    font-size: 24px;
+
     box-shadow:
-        inset 0 0 20px rgba(0, 220, 255, .04),
-        0 0 15px rgba(0, 220, 255, .04);
+        inset 0 1px 0 rgba(255,255,255,.06);
 }
 
-.upgrade-icon svg {
-    width: 26px;
-    height: 26px;
+.back-btn:active {
+    transform: scale(.92);
+
+    background:
+        rgba(0,229,255,.12);
+
+    border-color:
+        rgba(0,229,255,.35);
 }
 
-.mini-gem {
-    color: #00eaff;
-    font-size: 9px;
-}
+.panel-currency {
+    position: absolute;
 
-.setting-left {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-}
+    right: 0;
 
-.setting-icon {
-    width: 42px;
-    height: 42px;
+    min-width: 72px;
+    height: 36px;
+
+    padding: 0 11px;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 42px;
 
-    color: #00eaff;
+    border-radius: 999px;
 
-    border: 1px solid rgba(0, 220, 255, .24);
-    border-radius: 11px;
+    background:
+        rgba(255,255,255,.055);
+
+    border: 1px solid rgba(255,255,255,.10);
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* =========================================================
+   HUD
+========================================================= */
+
+#hud {
+    position: fixed;
+    inset: 0;
+
+    z-index: 10;
+
+    pointer-events: none;
+
+    display: none;
+}
+
+.hud-top {
+    position: absolute;
+
+    top: max(12px, env(safe-area-inset-top));
+
+    left: 12px;
+    right: 12px;
+
+    display: grid;
+
+    grid-template-columns:
+        1fr
+        1fr
+        1fr
+        46px;
+
+    gap: 7px;
+
+    align-items: center;
+
+    text-align: center;
+}
+
+.hud-top > div {
+    min-height: 44px;
+
+    padding: 5px 7px;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background:
+        rgba(5,10,20,.62);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.hud-label {
+    display: block;
+
+    margin-bottom: 2px;
+
+    font-size: 7px;
+    font-weight: 700;
+
+    letter-spacing: 2px;
+
+    color: rgba(255,255,255,.38);
+}
+
+.hud-top strong {
+    font-size: 16px;
+
+    font-weight: 850;
+
+    text-shadow:
+        0 0 12px rgba(0,229,255,.5);
+}
+
+.hud-center strong {
+    color: var(--cyan);
+}
+
+.mini-btn {
+    pointer-events: auto;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    color: white;
+
+    background:
+        rgba(10,17,30,.78);
+
+    border:
+        1px solid rgba(0,229,255,.28);
+
+    box-shadow:
+        0 8px 25px rgba(0,0,0,.25);
+
+    font-size: 17px;
+}
+
+.mini-btn:active {
+    transform: scale(.9);
+
+    background:
+        rgba(0,229,255,.15);
+}
+
+/* bottom HUD */
+
+.hud-bottom {
+    position: absolute;
+
+    left: 12px;
+    right: 12px;
+
+    bottom: max(12px, env(safe-area-inset-bottom));
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+}
+
+.stat-box {
+    height: 48px;
+
+    min-width: 62px;
+
+    padding: 0 11px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(5,10,20,.68);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ability-btn {
+    pointer-events: auto;
+
+    flex: 1;
+
+    height: 48px;
+
+    min-width: 0;
+
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    color: white;
+
+    background:
+        rgba(5,11,22,.72);
+
+    border:
+        1px solid rgba(0,229,255,.18);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.ability-btn small {
+    display: block;
+
+    margin-top: 2px;
+
+    font-size: 6px;
+    font-weight: 800;
+
+    letter-spacing: 1.5px;
+
+    opacity: .48;
+}
+
+.ability-btn:active {
+    transform: scale(.94);
+
+    background:
+        rgba(0,229,255,.13);
+
+    border-color:
+        rgba(0,229,255,.45);
+}
+
+.ability-btn:disabled {
+    opacity: .28;
+}
+
+/* =========================================================
+   BUFFS
+========================================================= */
+
+#buffContainer {
+    position: fixed;
+
+    top: 72px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    z-index: 15;
+
+    display: flex;
+
+    gap: 7px;
+
+    pointer-events: none;
+}
+
+.buff {
+    min-width: 54px;
+
+    padding: 7px 9px;
+
+    border-radius: 12px;
+
+    background:
+        rgba(6,14,27,.78);
+
+    border:
+        1px solid rgba(0,229,255,.25);
+
+    backdrop-filter: blur(12px);
+
+    text-align: center;
+
+    box-shadow:
+        0 0 22px rgba(0,229,255,.08);
+}
+
+.buff-icon {
+    font-size: 16px;
+}
+
+.buff-time {
+    margin-top: 2px;
+
+    font-size: 8px;
+
+    opacity: .65;
+}
+
+/* =========================================================
+   SHOP
+========================================================= */
+
+.shop-list {
+    width: min(500px, 94vw);
+
+    margin-top: 58px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 9px;
+}
+
+.upgrade {
+    position: relative;
+
+    display: grid;
+
+    grid-template-columns:
+        54px
+        minmax(0,1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-height: 80px;
+
+    padding: 11px;
+
+    border-radius: 19px;
 
     background:
         linear-gradient(
             135deg,
-            rgba(0, 220, 255, .10),
-            rgba(50, 70, 255, .05)
+            rgba(255,255,255,.065),
+            rgba(255,255,255,.025)
         );
 
+    border:
+        1px solid rgba(255,255,255,.09);
+
     box-shadow:
-        inset 0 0 15px rgba(0, 220, 255, .04);
+        0 10px 35px rgba(0,0,0,.22),
+        inset 0 1px 0 rgba(255,255,255,.045);
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
-.setting-icon svg {
-    width: 21px;
-    height: 21px;
+.upgrade:active {
+    transform: scale(.985);
+
+    border-color:
+        rgba(0,229,255,.25);
+}
+
+.upgrade-icon {
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 17px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,229,255,.13),
+            rgba(77,124,255,.08)
+        );
+
+    border:
+        1px solid rgba(0,229,255,.18);
+
+    font-size: 23px;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.07),
+        0 0 22px rgba(0,229,255,.06);
+}
+
+.upgrade-info {
+    min-width: 0;
+}
+
+.upgrade h3 {
+    margin: 0;
+
+    font-size: 11px;
+    font-weight: 850;
+
+    letter-spacing: 1.4px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.upgrade p {
+    margin: 4px 0;
+
+    font-size: 9px;
+
+    color: var(--muted);
+}
+
+.upgrade small {
+    font-size: 7px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    color: rgba(255,255,255,.35);
+}
+
+.upgrade button {
+    min-width: 70px;
+    min-height: 38px;
+
+    padding: 0 10px;
+
+    border-radius: 12px;
+
+    color: white;
+
+    background:
+        rgba(0,229,255,.10);
+
+    border:
+        1px solid rgba(0,229,255,.25);
+
+    font-size: 10px;
+    font-weight: 850;
+
+    letter-spacing: .5px;
+}
+
+.upgrade button:active {
+    transform: scale(.92);
+
+    background:
+        rgba(0,229,255,.2);
+}
+
+.upgrade button:disabled {
+    opacity: .25;
+}
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+.settings-list {
+    width: min(500px, 94vw);
+
+    margin-top: 58px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.setting {
+    min-height: 78px;
+
+    padding: 14px 15px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    border-radius: 19px;
+
+    background:
+        rgba(255,255,255,.05);
+
+    border:
+        1px solid rgba(255,255,255,.085);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.045),
+        0 10px 30px rgba(0,0,0,.18);
+
+    backdrop-filter: blur(16px);
 }
 
 .setting h3 {
-    letter-spacing: 1.5px;
+    margin: 0;
+
+    font-size: 12px;
+    font-weight: 850;
+
+    letter-spacing: 1.2px;
+}
+
+.setting p {
+    margin: 5px 0 0;
+
+    font-size: 9px;
+
+    color: var(--muted);
+}
+
+.toggle {
+    min-width: 58px;
+    height: 34px;
+
+    padding: 0 13px;
+
+    border-radius: 999px;
+
+    color: var(--cyan);
+
+    background:
+        rgba(0,229,255,.10);
+
+    border:
+        1px solid rgba(0,229,255,.27);
+
+    font-size: 9px;
+    font-weight: 850;
+
+    letter-spacing: 1px;
+}
+
+.toggle:active {
+    transform: scale(.92);
+}
+
+/* =========================================================
+   FEEDBACK / DAILY
+========================================================= */
+
+.feedback-content,
+.daily-content {
+    width: min(390px, 90vw);
+
+    padding: 30px 24px;
+
+    text-align: center;
+
+    border-radius: 28px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.07),
+            rgba(255,255,255,.025)
+        );
+
+    border:
+        1px solid rgba(255,255,255,.09);
+
+    box-shadow:
+        0 25px 80px rgba(0,0,0,.38),
+        inset 0 1px 0 rgba(255,255,255,.06);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 .feedback-icon,
 .daily-icon {
-    width: 76px;
-    height: 76px;
+    width: 82px;
+    height: 82px;
+
+    margin: 0 auto 22px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    margin: 0 auto 20px;
-
-    color: #00eaff;
-
-    border: 1px solid rgba(0, 220, 255, .35);
-    border-radius: 20px;
+    border-radius: 26px;
 
     background:
         linear-gradient(
             135deg,
-            rgba(0, 220, 255, .13),
-            rgba(40, 60, 255, .08)
+            rgba(0,229,255,.13),
+            rgba(139,92,255,.10)
         );
 
-    box-shadow:
-        0 0 25px rgba(0, 220, 255, .12),
-        inset 0 0 25px rgba(0, 220, 255, .05);
+    border:
+        1px solid rgba(0,229,255,.20);
 
-    filter: none;
+    font-size: 42px;
+
+    filter:
+        drop-shadow(0 0 20px rgba(0,229,255,.35));
 }
 
-.feedback-icon svg,
-.daily-icon svg {
-    width: 37px;
-    height: 37px;
+.feedback-content h2,
+.daily-content h2 {
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 850;
+
+    letter-spacing: 2px;
+}
+
+.feedback-content p,
+.daily-content p {
+    margin: 13px 0 0;
+
+    color: rgba(255,255,255,.48);
+
+    line-height: 1.6;
+
+    font-size: 11px;
 }
 
 .telegram-btn {
-    flex-direction: row;
-    gap: 9px;
+    margin-top: 24px;
+
+    min-height: 62px;
+
+    padding: 12px 20px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 4px;
+
+    color: white;
+
+    text-decoration: none;
+
+    border-radius: 17px;
+
+    background:
+        rgba(0,229,255,.09);
+
+    border:
+        1px solid rgba(0,229,255,.25);
+
+    font-size: 12px;
+    font-weight: 850;
+
+    letter-spacing: 1px;
 }
 
-.telegram-icon {
-    width: 22px;
-    height: 22px;
-    display: inline-flex;
+.telegram-btn strong {
+    color: var(--cyan);
+
+    font-size: 11px;
 }
 
-.telegram-icon svg {
-    width: 22px;
-    height: 22px;
+.telegram-btn:active {
+    transform: scale(.96);
 }
 
 .daily-reward {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+    margin: 24px 0;
+
+    font-size: 28px;
+    font-weight: 900;
+
+    color: var(--cyan);
+
+    text-shadow:
+        0 0 20px rgba(0,229,255,.45);
 }
 
-.daily-reward .currency-icon {
-    width: 27px;
-    height: 27px;
+.daily-content .main-btn {
+    width: 100%;
+}
+
+/* =========================================================
+   GAME OVER
+========================================================= */
+
+.gameover-title {
+    font-size: clamp(42px, 12vw, 76px);
+
+    font-weight: 950;
+
+    letter-spacing: 2px;
+
+    text-align: center;
+
+    color: #fff;
+
+    text-shadow:
+        0 0 10px rgba(255,255,255,.7),
+        0 0 30px rgba(255,61,154,.65),
+        0 0 65px rgba(255,61,154,.3);
+}
+
+.final-score {
+    margin-top: 25px;
+
+    min-width: 190px;
+
+    padding: 20px 30px;
+
+    text-align: center;
+
+    border-radius: 22px;
+
+    background:
+        rgba(255,255,255,.045);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.final-score span {
+    display: block;
+
+    margin-bottom: 4px;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 3px;
+
+    color: rgba(255,255,255,.4);
+}
+
+.final-score strong {
+    font-size: 48px;
+
+    font-weight: 900;
+
+    text-shadow:
+        0 0 18px rgba(0,229,255,.5);
 }
 
 .reward {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
+    margin: 16px 0 23px;
+
+    font-size: 16px;
+    font-weight: 800;
+
+    color: var(--cyan);
 }
 
-.reward .currency-icon {
-    width: 20px;
-    height: 20px;
-}
-
-.revive .button-icon {
-    color: #ff5b91;
-}
-
-#pauseScreen .main-btn,
 #gameOver .main-btn {
-    display: flex;
+    width: min(360px, 90vw);
+
+    margin-top: 8px;
 }
+
+.revive {
+    border-color:
+        rgba(255,61,154,.38) !important;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(255,61,154,.13),
+            rgba(139,92,255,.09)
+        ) !important;
+}
+
+/* =========================================================
+   PAUSE
+========================================================= */
+
+.pause-title {
+    margin-bottom: 26px;
+
+    font-size: 43px;
+
+    font-weight: 950;
+
+    letter-spacing: 5px;
+
+    text-shadow:
+        0 0 25px rgba(0,229,255,.45);
+}
+
+#pauseScreen .main-btn {
+    width: min(360px, 90vw);
+
+    margin-top: 8px;
+}
+
+/* =========================================================
+   WARNING
+========================================================= */
+
+#eventWarning {
+    position: fixed;
+
+    left: 50%;
+    top: 42%;
+
+    transform:
+        translate(-50%, -50%)
+        scale(.9);
+
+    z-index: 16;
+
+    text-align: center;
+
+    pointer-events: none;
+
+    opacity: 0;
+
+    transition:
+        opacity .15s ease,
+        transform .15s ease;
+}
+
+#eventWarning.show {
+    opacity: 1;
+
+    transform:
+        translate(-50%, -50%)
+        scale(1);
+}
+
+#eventWarningTitle {
+    font-size: 34px;
+
+    font-weight: 950;
+
+    letter-spacing: 5px;
+
+    color: #ff3b55;
+
+    text-shadow:
+        0 0 10px #ff304d,
+        0 0 35px #ff304d;
+}
+
+#eventWarningText {
+    margin-top: 8px;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 3px;
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+#toast {
+    position: fixed;
+
+    left: 50%;
+
+    bottom: max(80px, env(safe-area-inset-bottom));
+
+    z-index: 100;
+
+    transform:
+        translate(-50%, 20px)
+        scale(.96);
+
+    min-width: 150px;
+
+    padding: 12px 18px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(10,17,29,.88);
+
+    border:
+        1px solid rgba(0,229,255,.25);
+
+    box-shadow:
+        0 12px 40px rgba(0,0,0,.35);
+
+    backdrop-filter: blur(16px);
+
+    text-align: center;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    opacity: 0;
+
+    pointer-events: none;
+
+    transition:
+        opacity .2s ease,
+        transform .2s ease;
+}
+
+#toast.show {
+    opacity: 1;
+
+    transform:
+        translate(-50%, 0)
+        scale(1);
+}
+
+/* =========================================================
+   IPHONE / SMALL SCREENS
+========================================================= */
 
 @media (max-width: 430px) {
 
+    .logo {
+        font-size: 62px;
+    }
+
+    .logo span {
+        letter-spacing: 11px;
+    }
+
+    .menu-subtitle {
+        margin-top: 27px;
+        letter-spacing: 4px;
+    }
+
     .menu-buttons {
-        width: min(340px, 88vw);
+        margin-top: 31px;
+
+        width: min(360px, 91vw);
     }
 
     .main-btn {
-        min-height: 56px;
+        min-height: 54px;
+        border-radius: 17px;
     }
 
-    .setting {
-        padding: 14px;
+    #playButton {
+        min-height: 67px;
     }
 
-    .setting-icon {
-        width: 40px;
-        height: 40px;
-        flex-basis: 40px;
+    .shop-list {
+        margin-top: 55px;
+        width: 94vw;
     }
 
+    .upgrade {
+        min-height: 76px;
+    }
+
+    .upgrade-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .upgrade h3 {
+        font-size: 10px;
+    }
+
+    .upgrade p {
+        font-size: 8px;
+    }
+
+    .upgrade button {
+        min-width: 65px;
+        font-size: 9px;
+    }
+
+    .hud-top {
+        grid-template-columns:
+            1fr
+            1fr
+            1fr
+            44px;
+    }
+
+    .hud-top > div {
+        min-height: 42px;
+    }
+
+    .hud-top strong {
+        font-size: 14px;
+    }
+
+    .stat-box {
+        min-width: 57px;
+    }
+
+    .ability-btn {
+        min-width: 0;
+    }
+}
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-height: 700px) {
+
+    .logo {
+        font-size: 52px;
+    }
+
+    .menu-subtitle {
+        margin-top: 22px;
+    }
+
+    .menu-buttons {
+        margin-top: 23px;
+        gap: 7px;
+    }
+
+    .main-btn {
+        min-height: 47px;
+        padding: 10px 18px;
+    }
+
+    #playButton {
+        min-height: 57px;
+    }
+
+    .menu-crystals {
+        margin-top: 12px;
+    }
+}
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
 }
