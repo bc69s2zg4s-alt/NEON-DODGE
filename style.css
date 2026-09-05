@@ -2605,3 +2605,204 @@ a {
     }
 
 }
+
+/* =========================================================
+   FINAL UI FIX
+   ========================================================= */
+
+/* WARNING скрыт по умолчанию.
+   game.js сам покажет его, когда понадобится. */
+#eventWarning {
+    display: none;
+}
+
+
+/* =========================================================
+   FIX MENU ICONS
+   ========================================================= */
+
+/* Иконки меню больше не используют размеры
+   большой иконки Feedback */
+.menu-tile .tile-icon {
+    position: relative;
+
+    width: 35px !important;
+    height: 35px !important;
+
+    min-width: 35px !important;
+    max-width: 35px !important;
+
+    min-height: 35px !important;
+    max-height: 35px !important;
+
+    flex: 0 0 35px !important;
+
+    margin: 0 !important;
+
+    display: grid !important;
+    place-items: center !important;
+
+    border-radius: 11px !important;
+
+    overflow: hidden;
+}
+
+
+/* Полностью изолируем иконки плиток */
+.menu-tile .tile-icon::before {
+    position: static !important;
+
+    display: block !important;
+
+    width: auto !important;
+    height: auto !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
+
+    font-size: 15px !important;
+
+    line-height: 1 !important;
+}
+
+
+/* Текст меню */
+.menu-tile > span:last-child {
+    min-width: 0;
+
+    flex: 1;
+
+    margin-left: 9px !important;
+
+    overflow: hidden;
+}
+
+.menu-tile > span:last-child strong,
+.menu-tile > span:last-child small {
+    display: block;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   FIX FEEDBACK ICON
+   ========================================================= */
+
+/* Большая иконка Feedback панели */
+.feedback-content .feedback-icon {
+    width: 46px !important;
+    height: 46px !important;
+
+    min-width: 46px !important;
+    min-height: 46px !important;
+
+    flex: none !important;
+
+    margin: 0 !important;
+
+    display: grid !important;
+    place-items: center !important;
+
+    border-radius: 15px !important;
+}
+
+
+/* =========================================================
+   FIX DAILY ICON
+   ========================================================= */
+
+.daily-content .daily-icon {
+    width: 46px !important;
+    height: 46px !important;
+
+    min-width: 46px !important;
+    min-height: 46px !important;
+
+    flex: none !important;
+
+    margin: 0 !important;
+
+    display: grid !important;
+    place-items: center !important;
+}
+
+
+/* =========================================================
+   FIX SHOP ICONS
+   ========================================================= */
+
+.upgrade .upgrade-icon {
+    position: relative;
+
+    width: 52px !important;
+    height: 52px !important;
+
+    min-width: 52px !important;
+    min-height: 52px !important;
+
+    flex: 0 0 52px !important;
+
+    margin: 0 !important;
+
+    display: grid !important;
+    place-items: center !important;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   FIX BUTTON CONTENT
+   ========================================================= */
+
+.menu-tile {
+    overflow: hidden;
+}
+
+.menu-tile .tile-icon + span {
+    position: relative;
+
+    z-index: 2;
+}
+
+
+/* =========================================================
+   MOBILE SAFETY
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    .menu-tile {
+        padding: 8px !important;
+    }
+
+    .menu-tile .tile-icon {
+        width: 32px !important;
+        height: 32px !important;
+
+        min-width: 32px !important;
+        max-width: 32px !important;
+
+        min-height: 32px !important;
+        max-height: 32px !important;
+
+        flex-basis: 32px !important;
+    }
+
+    .menu-tile > span:last-child {
+        margin-left: 7px !important;
+    }
+
+    .menu-tile strong {
+        font-size: 8px !important;
+    }
+
+    .menu-tile small {
+        font-size: 6px !important;
+    }
+
+}
