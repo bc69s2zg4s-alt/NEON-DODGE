@@ -30,6 +30,7 @@ window.addEventListener("resize", resize);
 
 const defaultData = {
     crystals: 300,
+    gold: 0,
     best: 0,
 
     lives: 1,
@@ -2493,9 +2494,13 @@ function updateWeapon(dt) {
                         1
                     );
 
+                    SaveData.gold += 1;
+
                     score +=
                         30 *
                         multiplier;
+                        
+                    save();
 
                     if (
                         typeof AudioFX !==
@@ -2640,6 +2645,8 @@ function useEMP() {
                 i,
                 1
             );
+            
+            saveData.gold += 1;
 
             score +=
                 15 *
@@ -2659,6 +2666,8 @@ function useEMP() {
 
     vibrate(70);
 }
+
+Save();
 
 /* =========================================================
    EVENT SYSTEM
