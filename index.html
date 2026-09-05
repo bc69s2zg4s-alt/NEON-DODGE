@@ -2,10 +2,18 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta
+        name="viewport"
+        content="width=device-width,
+                 initial-scale=1.0,
+                 maximum-scale=1.0,
+                 user-scalable=no,
+                 viewport-fit=cover"
+    >
 
     <meta name="theme-color" content="#05060b">
+
     <title>NEON DODGE</title>
 
     <link rel="stylesheet" href="style.css">
@@ -15,256 +23,328 @@
 
 <canvas id="gameCanvas"></canvas>
 
-<!-- SVG ICONS -->
-<svg width="0" height="0" style="position:absolute">
-    <defs>
+<!-- =====================================================
+     SVG ICON SYSTEM
+===================================================== -->
 
-        <symbol id="i-play" viewBox="0 0 24 24">
-            <path d="M8 5.5v13l10-6.5z"
-                  fill="currentColor"/>
-        </symbol>
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    style="display:none"
+>
 
-        <symbol id="i-shop" viewBox="0 0 24 24">
-            <path d="M4 9h16l-1 11H5L4 9Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"/>
-            <path d="M7 9V7a5 5 0 0 1 10 0v2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"/>
-        </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+        <path
+            d="M8 5.5v13L19 12 8 5.5Z"
+            fill="currentColor"
+        />
+    </symbol>
 
-        <symbol id="i-settings" viewBox="0 0 24 24">
-            <path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"/>
-            <path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l2-1.5-2-3.4-2.3 1a8 8 0 0 0-2.6-1.5L14.2 2h-4l-.4 3.1A8 8 0 0 0 7.2 6.6l-2.3-1-2 3.4 2 1.5a7.7 7.7 0 0 0 0 3l-2 1.5 2 3.4 2.3-1a8 8 0 0 0 2.6 1.5l.4 3.1h4l.4-3.1a8 8 0 0 0 2.6-1.5l2.3 1 2-3.4z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.25"
-                  stroke-linejoin="round"/>
-        </symbol>
+    <symbol id="i-shop" viewBox="0 0 24 24">
+        <path
+            d="M4 9.5h16l-1 10H5l-1-10Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+        <path
+            d="M7 9.5 8.5 5h7L17 9.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+        />
+        <path
+            d="M9 13v3M15 13v3"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+        />
+    </symbol>
 
-        <symbol id="i-message" viewBox="0 0 24 24">
-            <path d="M4 5.5h16v11H8l-4 3v-14Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linejoin="round"/>
-            <path d="M8 9h8M8 12h5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+        <path
+            d="M12 8.3a3.7 3.7 0 1 0 0 7.4 3.7 3.7 0 0 0 0-7.4Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+        />
+        <path
+            d="m19 13.2 1.2 1-.1 1.8-1.7 1-1.4-.6-1.2.7-.3 1.5-1.7.7-1.3-1-1.4.1-1 1.1-1.8-.5-.6-1.7.7-1.2-.7-1.2-1.5-.4-.7-1.7 1-1.3-.1-1.4-1.1-1 .5-1.8 1.7-.6 1.2.7 1.2-.7.3-1.5 1.7-.7 1.3 1 1.4-.1 1-1.1 1.8.5.6 1.7-.7 1.2.7 1.2 1.5.4.7 1.7-1 1.3.1 1.4 1.1 1-.5 1.8-1.7.6-1.2-.7-1.2.7-.3 1.5-1.7.7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-calendar" viewBox="0 0 24 24">
-            <rect x="4" y="5" width="16" height="15" rx="2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"/>
-            <path d="M8 3v4M16 3v4M4 9h16"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-            <path d="M8 13h2M12 13h2M16 13h.1M8 16h2M12 16h2"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-message" viewBox="0 0 24 24">
+        <path
+            d="M4.5 5.5h15v10h-9l-4.5 3v-13Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+        <path
+            d="M8 9h8M8 12h5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+        />
+    </symbol>
 
-        <symbol id="i-gem" viewBox="0 0 24 24">
-            <path d="M5 5h14l3 5-10 10L2 10l3-5Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"/>
-            <path d="M2 10h20M8 5l4 15 4-15"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.4"
-                  stroke-linejoin="round"/>
-        </symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24">
+        <rect
+            x="4"
+            y="5.5"
+            width="16"
+            height="15"
+            rx="2.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+        />
+        <path
+            d="M8 3.5v4M16 3.5v4M4 9.5h16"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+        />
+        <path
+            d="m9 15 2 2 4-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-heart" viewBox="0 0 24 24">
-            <path d="M20.8 8.8c0 5.2-8.8 10.1-8.8 10.1S3.2 14 3.2 8.8A4.8 4.8 0 0 1 12 6.1a4.8 4.8 0 0 1 8.8 2.7Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linejoin="round"/>
-        </symbol>
+    <symbol id="i-gem" viewBox="0 0 24 24">
+        <path
+            d="m5 7 3-3h8l3 3-7 13L5 7Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+        <path
+            d="M5 7h14M8 4l2 3 2-3 2 3 2-3M8 7l4 13 4-13"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.25"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-weapon" viewBox="0 0 24 24">
-            <path d="M4 7h10v5H9l-2 3H4v-3h3V9H4Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"/>
-            <path d="M14 9h6M17 7v4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"/>
-            <path d="M8 15v4"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24">
+        <path
+            d="M12 20s-7-4.4-7-9.6A4.4 4.4 0 0 1 12 7a4.4 4.4 0 0 1 7 3.4C19 15.6 12 20 12 20Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-damage" viewBox="0 0 24 24">
-            <path d="M13 2 5 13h6l-1 9 9-12h-6l0-8Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linejoin="round"/>
-        </symbol>
+    <symbol id="i-crosshair" viewBox="0 0 24 24">
+        <circle
+            cx="12"
+            cy="12"
+            r="6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+        />
+        <path
+            d="M12 2v4M12 18v4M2 12h4M18 12h4"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+        />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+    </symbol>
 
-        <symbol id="i-shield" viewBox="0 0 24 24">
-            <path d="M12 3 20 6v5c0 5.2-3.2 8.4-8 10-4.8-1.6-8-4.8-8-10V6l8-3Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linejoin="round"/>
-            <path d="m8.5 12 2.2 2.2 4.8-5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </symbol>
+    <symbol id="i-burst" viewBox="0 0 24 24">
+        <path
+            d="m13 2-8 11h6l-1 9 8-12h-6l1-8Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-lightning" viewBox="0 0 24 24">
-            <path d="M13 2 5 13h6l-1 9 9-12h-6l0-8Z"
-                  fill="currentColor"/>
-        </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+        <path
+            d="M12 3.5 19 6v5.4c0 4.3-2.8 7.8-7 9.1-4.2-1.3-7-4.8-7-9.1V6l7-2.5Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+        <path
+            d="m9 12 2 2 4-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-music" viewBox="0 0 24 24">
-            <path d="M9 18V5l10-2v13"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-            <circle cx="6.5" cy="18" r="3"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"/>
-            <circle cx="16.5" cy="16" r="3"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"/>
-        </symbol>
+    <symbol id="i-lightning" viewBox="0 0 24 24">
+        <path
+            d="m13 2-8 11h6l-1 9 8-12h-6l1-8Z"
+            fill="currentColor"
+        />
+    </symbol>
 
-        <symbol id="i-sound" viewBox="0 0 24 24">
-            <path d="M4 10v4h4l5 4V6l-5 4H4Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linejoin="round"/>
-            <path d="M16 9a5 5 0 0 1 0 6M18.5 6.5a8.5 8.5 0 0 1 0 11"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-music" viewBox="0 0 24 24">
+        <path
+            d="M9 18V6l10-2v12"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+        <circle
+            cx="6.5"
+            cy="18"
+            r="2.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+        />
+        <circle
+            cx="16.5"
+            cy="16"
+            r="2.5"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+        />
+    </symbol>
 
-        <symbol id="i-vibration" viewBox="0 0 24 24">
-            <rect x="8" y="5" width="8" height="14" rx="2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"/>
-            <path d="M5 8v8M2.5 10v4M19 8v8M21.5 10v4"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24">
+        <path
+            d="M4 10v4h4l5 4V6l-5 4H4Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+        <path
+            d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+        />
+    </symbol>
 
-        <symbol id="i-back" viewBox="0 0 24 24">
-            <path d="m15 5-7 7 7 7"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </symbol>
+    <symbol id="i-vibration" viewBox="0 0 24 24">
+        <rect
+            x="8"
+            y="4"
+            width="8"
+            height="16"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+        />
+        <path
+            d="M5 8v8M2.5 9.5v5M19 8v8M21.5 9.5v5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+        />
+    </symbol>
 
-        <symbol id="i-pause" viewBox="0 0 24 24">
-            <path d="M8 5v14M16 5v14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-back" viewBox="0 0 24 24">
+        <path
+            d="m14.5 5-7 7 7 7"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-restart" viewBox="0 0 24 24">
-            <path d="M20 11a8 8 0 0 0-14.7-4L3 10"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-            <path d="M3 5v5h5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-            <path d="M4 13a8 8 0 0 0 14.7 4L21 14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24">
+        <path
+            d="M8 5v14M16 5v14"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+        />
+    </symbol>
 
-        <symbol id="i-plane" viewBox="0 0 24 24">
-            <path d="m3 11 18-8-8 18-2-7-8-3Z"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"/>
-            <path d="m11 14 4-5"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24">
+        <path
+            d="M5 8a8 8 0 1 1-1 6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+        />
+        <path
+            d="M5 4v4h4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        />
+    </symbol>
 
-        <symbol id="i-menu" viewBox="0 0 24 24">
-            <path d="M5 8h14M5 12h14M5 16h14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-        </symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24">
+        <path
+            d="m21 3-7 18-3-8-8-3L21 3Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+        />
+        <path
+            d="m11 13 5-5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+        />
+    </symbol>
 
-    </defs>
 </svg>
 
+<!-- =====================================================
+     HUD
+===================================================== -->
 
-<!-- HUD -->
 <div id="hud">
 
     <div class="hud-top">
 
-        <div>
+        <div class="hud-stat">
             <span class="hud-label">SCORE</span>
             <strong id="score">0</strong>
         </div>
 
-        <div class="hud-center">
+        <div class="hud-stat hud-center">
             <span class="hud-label">MULTIPLIER</span>
             <strong id="multiplier">x1</strong>
         </div>
 
-        <div>
+        <div class="hud-stat">
             <span class="hud-label">BEST</span>
             <strong id="best">0</strong>
         </div>
 
         <button id="pauseButton" class="mini-btn">
-            <svg><use href="#i-pause"></use></svg>
+            <svg><use href="#i-pause"/></svg>
         </button>
 
     </div>
@@ -272,30 +352,22 @@
     <div class="hud-bottom">
 
         <div class="stat-box">
-            <svg class="ui-icon heart-icon">
-                <use href="#i-heart"></use>
-            </svg>
+            <svg><use href="#i-heart"/></svg>
             <strong id="health">1</strong>
         </div>
 
         <div class="stat-box">
-            <svg class="ui-icon gem-icon">
-                <use href="#i-gem"></use>
-            </svg>
+            <svg><use href="#i-gem"/></svg>
             <strong id="crystals">0</strong>
         </div>
 
         <button id="shieldButton" class="ability-btn">
-            <svg class="ability-icon">
-                <use href="#i-shield"></use>
-            </svg>
+            <svg><use href="#i-shield"/></svg>
             <small>SHIELD</small>
         </button>
 
         <button id="empButton" class="ability-btn">
-            <svg class="ability-icon">
-                <use href="#i-lightning"></use>
-            </svg>
+            <svg><use href="#i-lightning"/></svg>
             <small>EMP</small>
         </button>
 
@@ -303,20 +375,23 @@
 
 </div>
 
-
-<!-- BUFFS -->
 <div id="buffContainer"></div>
 
-
-<!-- EVENT WARNING -->
 <div id="eventWarning">
     <div id="eventWarningTitle">WARNING</div>
     <div id="eventWarningText"></div>
 </div>
 
+<!-- =====================================================
+     MAIN MENU
+===================================================== -->
 
-<!-- MAIN MENU -->
 <div id="menu" class="screen active">
+
+    <div class="menu-topline">
+        <span>NEON SYSTEM</span>
+        <span>ONLINE</span>
+    </div>
 
     <div class="logo">
         <div>NEON</div>
@@ -327,70 +402,85 @@
         SURVIVE THE NEON HELL
     </div>
 
-    <div class="menu-buttons">
+    <div class="menu-play-wrap">
 
-        <button id="playButton" class="main-btn primary-btn">
-            <span class="button-icon">
-                <svg><use href="#i-play"></use></svg>
+        <div class="play-orbit"></div>
+
+        <button id="playButton" class="play-button">
+
+            <span class="play-icon">
+                <svg><use href="#i-play"/></svg>
             </span>
-            <span>PLAY</span>
+
+            <span class="play-text">
+                PLAY
+                <small>START RUN</small>
+            </span>
+
         </button>
 
-        <button id="shopButton" class="main-btn">
-            <span class="button-icon">
-                <svg><use href="#i-shop"></use></svg>
+    </div>
+
+    <div class="menu-dock">
+
+        <button id="shopButton" class="dock-item">
+            <span class="dock-icon">
+                <svg><use href="#i-shop"/></svg>
             </span>
             <span>SHOP</span>
         </button>
 
-        <button id="settingsButton" class="main-btn">
-            <span class="button-icon">
-                <svg><use href="#i-settings"></use></svg>
+        <button id="dailyButton" class="dock-item">
+            <span class="dock-icon">
+                <svg><use href="#i-calendar"/></svg>
+            </span>
+            <span>DAILY</span>
+        </button>
+
+        <button id="settingsButton" class="dock-item">
+            <span class="dock-icon">
+                <svg><use href="#i-settings"/></svg>
             </span>
             <span>SETTINGS</span>
         </button>
 
-        <button id="feedbackButton" class="main-btn">
-            <span class="button-icon">
-                <svg><use href="#i-message"></use></svg>
+        <button id="feedbackButton" class="dock-item">
+            <span class="dock-icon">
+                <svg><use href="#i-message"/></svg>
             </span>
-            <span>FEEDBACK</span>
-        </button>
-
-        <button id="dailyButton" class="main-btn">
-            <span class="button-icon">
-                <svg><use href="#i-calendar"></use></svg>
-            </span>
-            <span>DAILY REWARD</span>
+            <span>CONTACT</span>
         </button>
 
     </div>
 
-    <div class="menu-crystals">
-        <svg class="currency-icon">
-            <use href="#i-gem"></use>
-        </svg>
+    <div class="menu-wallet">
+
+        <svg><use href="#i-gem"/></svg>
+
         <span id="menuCrystals">0</span>
+
+        <small>CRYSTALS</small>
+
     </div>
 
 </div>
 
+<!-- =====================================================
+     SHOP
+===================================================== -->
 
-<!-- SHOP -->
 <div id="shopPanel" class="screen">
 
     <div class="panel-header">
 
         <button class="back-btn" data-close="shopPanel">
-            <svg><use href="#i-back"></use></svg>
+            <svg><use href="#i-back"/></svg>
         </button>
 
         <h2>UPGRADES</h2>
 
         <div class="panel-currency">
-            <svg class="currency-icon">
-                <use href="#i-gem"></use>
-            </svg>
+            <svg><use href="#i-gem"/></svg>
             <span id="shopCrystals">0</span>
         </div>
 
@@ -401,7 +491,7 @@
         <div class="upgrade">
 
             <div class="upgrade-icon">
-                <svg><use href="#i-heart"></use></svg>
+                <svg><use href="#i-heart"/></svg>
             </div>
 
             <div class="upgrade-info">
@@ -410,15 +500,14 @@
                 <small id="lifeLevel">LEVEL 1/3</small>
             </div>
 
-            <button id="buyLife">80 <span class="mini-gem">◆</span></button>
+            <button id="buyLife">80</button>
 
         </div>
-
 
         <div class="upgrade">
 
             <div class="upgrade-icon">
-                <svg><use href="#i-weapon"></use></svg>
+                <svg><use href="#i-crosshair"/></svg>
             </div>
 
             <div class="upgrade-info">
@@ -427,15 +516,14 @@
                 <small id="weaponLevel">LOCKED</small>
             </div>
 
-            <button id="buyWeapon">150 <span class="mini-gem">◆</span></button>
+            <button id="buyWeapon">150</button>
 
         </div>
-
 
         <div class="upgrade">
 
             <div class="upgrade-icon">
-                <svg><use href="#i-damage"></use></svg>
+                <svg><use href="#i-burst"/></svg>
             </div>
 
             <div class="upgrade-info">
@@ -444,15 +532,14 @@
                 <small id="damageLevel">LEVEL 1/3</small>
             </div>
 
-            <button id="buyDamage">100 <span class="mini-gem">◆</span></button>
+            <button id="buyDamage">100</button>
 
         </div>
-
 
         <div class="upgrade">
 
             <div class="upgrade-icon">
-                <svg><use href="#i-shield"></use></svg>
+                <svg><use href="#i-shield"/></svg>
             </div>
 
             <div class="upgrade-info">
@@ -461,15 +548,14 @@
                 <small id="shieldLevel">LEVEL 1/3</small>
             </div>
 
-            <button id="buyShield">90 <span class="mini-gem">◆</span></button>
+            <button id="buyShield">90</button>
 
         </div>
-
 
         <div class="upgrade">
 
             <div class="upgrade-icon">
-                <svg><use href="#i-lightning"></use></svg>
+                <svg><use href="#i-lightning"/></svg>
             </div>
 
             <div class="upgrade-info">
@@ -478,7 +564,7 @@
                 <small id="empLevel">LEVEL 1/3</small>
             </div>
 
-            <button id="buyEmp">100 <span class="mini-gem">◆</span></button>
+            <button id="buyEmp">100</button>
 
         </div>
 
@@ -486,14 +572,16 @@
 
 </div>
 
+<!-- =====================================================
+     SETTINGS
+===================================================== -->
 
-<!-- SETTINGS -->
 <div id="settingsPanel" class="screen">
 
     <div class="panel-header">
 
         <button class="back-btn" data-close="settingsPanel">
-            <svg><use href="#i-back"></use></svg>
+            <svg><use href="#i-back"/></svg>
         </button>
 
         <h2>SETTINGS</h2>
@@ -504,51 +592,43 @@
 
         <div class="setting">
 
-            <div class="setting-left">
-                <div class="setting-icon">
-                    <svg><use href="#i-music"></use></svg>
-                </div>
+            <div class="setting-icon">
+                <svg><use href="#i-music"/></svg>
+            </div>
 
-                <div>
-                    <h3>MUSIC</h3>
-                    <p>Background music</p>
-                </div>
+            <div class="setting-info">
+                <h3>MUSIC</h3>
+                <p>Background soundtrack</p>
             </div>
 
             <button id="musicToggle" class="toggle">ON</button>
 
         </div>
 
-
         <div class="setting">
 
-            <div class="setting-left">
-                <div class="setting-icon">
-                    <svg><use href="#i-sound"></use></svg>
-                </div>
+            <div class="setting-icon">
+                <svg><use href="#i-volume"/></svg>
+            </div>
 
-                <div>
-                    <h3>SOUND</h3>
-                    <p>Game sounds</p>
-                </div>
+            <div class="setting-info">
+                <h3>SOUND</h3>
+                <p>Game effects</p>
             </div>
 
             <button id="soundToggle" class="toggle">ON</button>
 
         </div>
 
-
         <div class="setting">
 
-            <div class="setting-left">
-                <div class="setting-icon">
-                    <svg><use href="#i-vibration"></use></svg>
-                </div>
+            <div class="setting-icon">
+                <svg><use href="#i-vibration"/></svg>
+            </div>
 
-                <div>
-                    <h3>VIBRATION</h3>
-                    <p>Haptic feedback</p>
-                </div>
+            <div class="setting-info">
+                <h3>HAPTICS</h3>
+                <p>Vibration feedback</p>
             </div>
 
             <button id="vibrationToggle" class="toggle">ON</button>
@@ -559,62 +639,66 @@
 
 </div>
 
+<!-- =====================================================
+     FEEDBACK
+===================================================== -->
 
-<!-- FEEDBACK -->
 <div id="feedbackPanel" class="screen">
 
     <div class="panel-header">
 
         <button class="back-btn" data-close="feedbackPanel">
-            <svg><use href="#i-back"></use></svg>
+            <svg><use href="#i-back"/></svg>
         </button>
 
-        <h2>FEEDBACK</h2>
+        <h2>CONTACT</h2>
 
     </div>
 
     <div class="feedback-content">
 
-        <div class="feedback-icon">
-            <svg>
-                <use href="#i-message"></use>
-            </svg>
+        <div class="big-panel-icon">
+            <svg><use href="#i-message"/></svg>
+        </div>
+
+        <div class="panel-kicker">
+            NEON DODGE
         </div>
 
         <h2>FOUND A BUG?</h2>
 
         <p>
-            Напиши нам, если нашёл баг или хочешь
-            предложить новую функцию.
+            Нашёл ошибку или хочешь предложить
+            новую функцию? Напиши нам.
         </p>
 
-        <a href="https://t.me/NEON_DODGE"
-           target="_blank"
-           class="telegram-btn">
+        <a
+            href="https://t.me/NEON_DODGE"
+            target="_blank"
+            class="telegram-btn"
+        >
+            <svg><use href="#i-plane"/></svg>
 
-            <span class="telegram-icon">
-                <svg>
-                    <use href="#i-plane"></use>
-                </svg>
+            <span>
+                TELEGRAM
+                <strong>@NEON_DODGE</strong>
             </span>
-
-            <span>TELEGRAM</span>
-            <strong>@NEON_DODGE</strong>
-
         </a>
 
     </div>
 
 </div>
 
+<!-- =====================================================
+     DAILY
+===================================================== -->
 
-<!-- DAILY -->
 <div id="dailyPanel" class="screen">
 
     <div class="panel-header">
 
         <button class="back-btn" data-close="dailyPanel">
-            <svg><use href="#i-back"></use></svg>
+            <svg><use href="#i-back"/></svg>
         </button>
 
         <h2>DAILY REWARD</h2>
@@ -623,27 +707,29 @@
 
     <div class="daily-content">
 
-        <div class="daily-icon">
-            <svg>
-                <use href="#i-calendar"></use>
-            </svg>
+        <div class="big-panel-icon daily-glow">
+            <svg><use href="#i-calendar"/></svg>
+        </div>
+
+        <div class="panel-kicker">
+            DAILY SYSTEM
         </div>
 
         <h2>DAILY BONUS</h2>
 
         <p>
-            Заходи каждый день и получай кристаллы.
+            Заходи каждый день и получай
+            дополнительные кристаллы.
         </p>
 
         <div class="daily-reward">
-            <svg class="currency-icon">
-                <use href="#i-gem"></use>
-            </svg>
-            +25
+            <svg><use href="#i-gem"/></svg>
+            <strong>+25</strong>
+            <span>CRYSTALS</span>
         </div>
 
         <button id="claimDaily" class="main-btn">
-            CLAIM
+            CLAIM REWARD
         </button>
 
         <p id="dailyStatus"></p>
@@ -652,9 +738,15 @@
 
 </div>
 
+<!-- =====================================================
+     GAME OVER
+===================================================== -->
 
-<!-- GAME OVER -->
 <div id="gameOver" class="screen">
+
+    <div class="gameover-kicker">
+        RUN TERMINATED
+    </div>
 
     <div class="gameover-title">
         GAME OVER
@@ -664,61 +756,54 @@
 
         <span>SCORE</span>
 
-        <strong id="finalScore">
-            0
-        </strong>
+        <strong id="finalScore">0</strong>
 
     </div>
 
     <div class="reward">
 
-        <svg class="currency-icon">
-            <use href="#i-gem"></use>
-        </svg>
+        <svg><use href="#i-gem"/></svg>
 
-        +
-
-        <span id="rewardAmount">
-            0
-        </span>
+        <span>+</span>
+        <span id="rewardAmount">0</span>
 
     </div>
 
     <button id="reviveButton" class="main-btn revive">
 
         <span class="button-icon">
-            <svg><use href="#i-play"></use></svg>
+            <svg><use href="#i-play"/></svg>
         </span>
 
-        <span>REVIVE — WATCH AD</span>
+        REVIVE — WATCH AD
 
     </button>
 
     <button id="restartButton" class="main-btn">
 
         <span class="button-icon">
-            <svg><use href="#i-restart"></use></svg>
+            <svg><use href="#i-restart"/></svg>
         </span>
 
-        <span>RESTART</span>
+        RESTART
 
     </button>
 
-    <button id="menuButton" class="main-btn">
-
-        <span class="button-icon">
-            <svg><use href="#i-menu"></use></svg>
-        </span>
-
-        <span>MENU</span>
-
+    <button id="menuButton" class="main-btn secondary-btn">
+        MENU
     </button>
 
 </div>
 
+<!-- =====================================================
+     PAUSE
+===================================================== -->
 
-<!-- PAUSE -->
 <div id="pauseScreen" class="screen">
+
+    <div class="pause-kicker">
+        SYSTEM PAUSED
+    </div>
 
     <div class="pause-title">
         PAUSED
@@ -727,28 +812,20 @@
     <button id="resumeButton" class="main-btn">
 
         <span class="button-icon">
-            <svg><use href="#i-play"></use></svg>
+            <svg><use href="#i-play"/></svg>
         </span>
 
-        <span>RESUME</span>
+        RESUME
 
     </button>
 
-    <button id="pauseMenuButton" class="main-btn">
-
-        <span class="button-icon">
-            <svg><use href="#i-menu"></use></svg>
-        </span>
-
-        <span>MENU</span>
-
+    <button id="pauseMenuButton" class="main-btn secondary-btn">
+        MENU
     </button>
 
 </div>
 
-
 <div id="toast"></div>
-
 
 <script src="audio.js"></script>
 <script src="game.js"></script>
